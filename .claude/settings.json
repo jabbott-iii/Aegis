@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew *)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git show *)",
+      "Bash(adb devices *)",
+      "Bash(adb shell getprop *)",
+      "Bash(adb shell dumpsys *)",
+      "Bash(python3 .claude/hooks/test_hooks.py *)",
+      "WebFetch(domain:developer.android.com)",
+      "WebFetch(domain:source.android.com)",
+      "WebFetch(domain:kotlinlang.org)",
+      "WebFetch(domain:support.google.com)",
+      "WebFetch(domain:mas.owasp.org)"
+    ],
+    "ask": [
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(git rebase *)",
+      "Bash(git reset *)",
+      "Bash(git merge *)",
+      "Bash(git tag *)",
+      "Bash(git cherry-pick *)",
+      "Bash(git revert *)",
+      "Bash(git clean *)",
+      "Bash(git restore *)",
+      "Bash(git stash *)",
+      "Bash(git branch -D *)",
+      "Bash(gh pr create *)",
+      "Bash(gh release *)",
+      "Bash(./gradlew *publish*)",
+      "Bash(./gradlew *Publish*)",
+      "Bash(./gradlew *upload*)",
+      "Bash(adb install *)",
+      "Bash(adb uninstall *)",
+      "Bash(adb shell pm *)",
+      "Bash(adb shell settings put *)"
+    ],
+    "deny": [
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git push * --force*)",
+      "Bash(git push * -f*)",
+      "Read(./local.properties)",
+      "Read(**/keystore.properties)",
+      "Read(**/*.jks)",
+      "Read(**/*.keystore)",
+      "Read(**/*.p12)",
+      "Read(**/*.pfx)",
+      "Read(**/*.key)",
+      "Read(**/google-services.json)",
+      "Read(**/.env)",
+      "Read(**/.env.*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/pre_tool_guard.py"],
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/post_edit_checks.py"],
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

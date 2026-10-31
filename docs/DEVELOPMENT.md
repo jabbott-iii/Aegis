@@ -85,3 +85,18 @@ Workflow hardening:
 2. Tag the release, and CI builds the release AAB.
 3. Upload to the Play **internal** track, then closed testing, then production with a staged rollout (10% → 50% → 100%, watching the crash rate and FP reports).
 4. Release the intel bundle on its own cadence. A bundle's `minAppVersion` keeps it from reaching app versions that can't use it.
+
+## Working with Claude Code
+
+The repository ships shared Claude Code configuration. Personal overrides belong in `.claude/settings.local.json` and `CLAUDE.local.md`, which are both gitignored.
+
+| Path | Purpose |
+|---|---|
+| `CLAUDE.md` | Project instructions: doc map, non-negotiables, architecture rules, workflow |
+| `.claude/rules/*.md` | Path-scoped rules that load when matching files are touched (engine, parsers, manifest, Shield, UI copy, build, intel pipeline, tests) |
+| `.claude/settings.json` | Shared permissions (gradle allowed; git history changes ask; secrets unreadable) and hooks |
+| `.claude/hooks/` | `pre_tool_guard.py` (blocks security-weakening config, secrets, forbidden SDKs, malware downloads) and `post_edit_checks.py` (rule warnings). Both need `python3`. Self-test with `python3 .claude/hooks/test_hooks.py`. |
+| `.claude/skills/` | `/implement-requirement`, `/run-spike`, `/new-adr`, `/add-permission`, `/add-intel-source`, `/new-module`, `/pre-pr-check` |
+| `.claude/agents/` | `security-reviewer`, `policy-privacy-reviewer`, `detection-quality-reviewer` (all read-only) |
+
+The hooks are guardrails, not a security boundary. CI gates and code review remain the enforcement points.
