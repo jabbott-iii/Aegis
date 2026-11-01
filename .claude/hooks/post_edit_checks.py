@@ -7,7 +7,11 @@ so these checks are warnings to fix, not blocks.
 
 Checks:
 - Kotlin: Android imports in pure modules, `!!` in engine code, GlobalScope, runBlocking,
-  and direct logging outside the core:common facade
+  and direct logging outside the app's logcat sink. The `!!`, GlobalScope, runBlocking, and
+  logging checks are early warnings for a subset of what `./gradlew checkSourceRules` (build-logic
+  SourceRules.kt) fails on in CI, over the same files. Keep their prefixes, file scope, and
+  exemptions in step with it. Android imports in pure modules fail CI through compilation (the
+  modules are pure JVM) and checkModuleGraph.
 - AndroidManifest.xml: permissions missing from docs/PERMISSIONS_AND_POLICY.md, and
   exported components
 - Gradle build files: inline dependency versions (the version catalog is required)
@@ -29,15 +33,23 @@ PURE_MODULE_PREFIXES = (
     "engine/apk/", "engine/signatures/", "engine/heuristics/",
     "shield/dns/", "core/model/", "core/common/",
 )
-NO_BANG_BANG_PREFIXES = ("engine/", "shield/", "ai/", "intel/", "core/security/")
-LOGGING_FACADE_PREFIX = "core/common/"
+NO_BANG_BANG_PREFIXES = (
+    "engine/", "shield/", "ai/", "intel/", "core/security/", "core/common/", "core/model/",
+)
+# The logging facade's only Android adapter, and the only exemption from the logging rules.
+LOGCAT_SINK = re.compile(r"^app/src/main/kotlin/(.+/)?logging/LogcatSink\.kt$")
 
 ANDROID_IMPORT = re.compile(r"^\s*import\s+(android|androidx)\.", re.MULTILINE)
 GLOBAL_SCOPE = re.compile(r"\bGlobalScope\b")
 RUN_BLOCKING = re.compile(r"\brunBlocking\b")
-DIRECT_LOGGING = re.compile(r"(^\s*import\s+android\.util\.Log\b|\bLog\.[vdiwe]\s*\(|\bprintln\s*\()", re.MULTILINE)
-STRING_LITERAL = re.compile(r'"(?:\\.|[^"\\\n])*"')
-LINE_COMMENT = re.compile(r"//.*$")
+# Not a member call (`w.println(`), not part of a longer name, and not a declaration (`fun println(`).
+BARE = r"(?<![\w.$])(?<!\bfun\s)"
+DIRECT_LOGGING = re.compile(
+    rf"(^\s*import\s+android\.util\.Log\b|{BARE}Log\.[vdiwe]\s*\(|{BARE}println\s*\()", re.MULTILINE
+)
+# String literals, block comments that close on the same line, and line comments, matched in one
+# left-to-right pass so that whichever starts first wins: "image/*" is a string, not a comment.
+CODE_NOISE = re.compile(r'"(?:\\.|[^"\\\n])*"|/\*.*?\*/|//.*$')
 
 USES_PERMISSION = re.compile(r'<uses-permission(?:-sdk-23)?[^>]*android:name\s*=\s*"([^"]+)"')
 EXPORTED_TRUE = re.compile(r'android:exported\s*=\s*"true"')
@@ -61,12 +73,17 @@ def rel_path(file_path: str, project_dir: str) -> str:
         return Path(file_path).as_posix()
 
 
-def is_test(rel: str) -> bool:
-    return bool(re.search(r"(^|/)(src/test|src/androidTest|src/jvmTest|testing)/", rel))
+def is_checked_source(rel: str) -> bool:
+    """The files checkSourceRules scans: each module's src/ tree, minus test source sets
+    (test*, androidTest*, screenshotTest*) and the testing:* helpers. build-logic isn't a module."""
+    if rel.startswith(("testing/", "build-logic/")):
+        return False
+    source_set = re.search(r"(^|/)src/([^/]+)/", rel)
+    return bool(source_set) and not source_set.group(2).startswith(("test", "androidTest", "screenshotTest"))
 
 
 def code_lines(text: str) -> list[tuple[int, str]]:
-    """Lines with string literals and line comments removed (approximate, good enough for linting)."""
+    """Lines with string literals and comments removed (approximate, good enough for linting)."""
     out = []
     in_block = False
     for i, line in enumerate(text.splitlines(), start=1):
@@ -76,11 +93,10 @@ def code_lines(text: str) -> list[tuple[int, str]]:
                 in_block = False
             else:
                 continue
-        if "/*" in line and "*/" not in line.split("/*", 1)[1]:
+        line = CODE_NOISE.sub(lambda m: '""' if m.group(0).startswith('"') else "", line)
+        if "/*" in line:  # only a real block-comment opener is left, and it runs past this line
             line = line.split("/*", 1)[0]
             in_block = True
-        line = STRING_LITERAL.sub('""', line)
-        line = LINE_COMMENT.sub("", line)
         out.append((i, line))
     return out
 
@@ -91,7 +107,7 @@ def lines_matching(text: str, rx: re.Pattern[str], limit: int = 5) -> list[int]:
 
 
 def check_kotlin(rel: str, text: str) -> list[str]:
-    if is_test(rel) or "/src/main/" not in f"/{rel}":
+    if not is_checked_source(rel):
         return []
     issues: list[str] = []
     if rel.startswith(PURE_MODULE_PREFIXES) and ANDROID_IMPORT.search(text):
@@ -107,7 +123,7 @@ def check_kotlin(rel: str, text: str) -> list[str]:
     lines = lines_matching(text, RUN_BLOCKING)
     if lines:
         issues.append(f"runBlocking in main sources at line(s) {lines}.")
-    if not rel.startswith(LOGGING_FACADE_PREFIX):
+    if not LOGCAT_SINK.match(rel):
         lines = lines_matching(text, DIRECT_LOGGING)
         if lines:
             issues.append(f"Direct logging (android.util.Log/println) at line(s) {lines}. Use the core:common "

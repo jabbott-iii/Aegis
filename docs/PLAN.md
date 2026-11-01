@@ -199,6 +199,7 @@ The owner needs to decide these. Each one changes scope or architecture.
 5. **minSdk 29 vs. 31.** *The owner chose minSdk 29 on 2026-11-01 ([ADR-0007](adr/0007-platform-and-build-baseline.md)).* API 29 is the minimum for per-app VPN attribution (`getConnectionOwnerUid`). Moving to 31 removes Wi-Fi security-type and other compatibility branches but drops Android 10 and 11 devices.
 6. **Default DNS upstream.** The options are the network resolver, a security-focused DoH resolver (for example, Quad9), or a user choice at onboarding. Whichever is chosen must be disclosed.
 7. **Project license.** This affects contributions and how third-party data is redistributed.
+8. **NFR-MAINT-01 outside the pure modules.** `aegis.jvm.engine` gives the six pure modules explicit API mode and the ≥ 80% Kover gate. `engine:scanner`, `engine:ml`, `intel:client`, and a non-pure `ai:guard` would get neither. The options are an engine convention plugin for those modules, or narrowing NFR-MAINT-01 to the pure modules. Decide before the first of them is created.
 
 ## 7. Definition of done (per feature)
 

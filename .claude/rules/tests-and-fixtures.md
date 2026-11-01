@@ -12,7 +12,7 @@ paths:
 - **Fixtures are benign and built from source.** `testing/fixtures/` apps *emulate* risky profiles (permissions, components, embedded dummy DEX) and do nothing harmful. They are signed with a key whose alias and file name contain `test`.
 - **Deterministic tests.** Inject the clock and dispatchers, use `runTest` and Turbine for flows, and avoid real network calls, real sleeps, and order-dependent state.
 - **Prefer fakes** for engine collaborators. Use MockK at Android boundaries only.
-- **Naming:** use backtick sentence names, such as `` `rejects zip with compression ratio above limit` ``, and one behavior per test.
+- **Naming:** one behavior per test. JVM unit tests (`src/test`) use backtick sentence names, such as `` `rejects zip with compression ratio above limit` ``. Instrumented tests (`src/androidTest`) can't, because DEX allows spaces in names only from API 30 and minSdk is 29. Use camelCase sentence names there, such as `launchShowsAppNameAndHonestStatus`.
 - **Parser tests** need malformed-input cases plus a Jazzer fuzz target, and a regression fixture for every bug the fuzzer finds.
 - **Instrumented tests** that touch the VPN, the notification listener, or package install use the debug-only bundle and fixture apps, and never third-party endpoints.
 - **Detection-quality gates** (TESTING §3) run from feature dumps, never from APK binaries checked into the repo.

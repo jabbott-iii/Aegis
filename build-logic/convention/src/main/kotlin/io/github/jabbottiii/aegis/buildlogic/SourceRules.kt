@@ -15,8 +15,8 @@ import java.io.File
  * Source rules that need no type resolution, so they hold even where detekt's type-resolved rules
  * can't run (detekt 1.23 has no Android variant tasks under AGP 9). They cover CLAUDE.md
  * non-negotiable #8 (no direct logging) and § Conventions (injected dispatchers, structured
- * concurrency, no `!!` in engine code). `.claude/hooks/post_edit_checks.py` warns about the
- * same patterns while editing. This task is the CI gate.
+ * concurrency, no `!!` in engine code). While editing, `.claude/hooks/post_edit_checks.py` warns
+ * about a subset of these patterns in Kotlin files, over the same files. This task is the CI gate.
  *
  * It's a pattern scan over code with comments and string literals removed. It catches the listed
  * forms, including fully qualified calls, callable references, and calls split across lines. Code

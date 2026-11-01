@@ -13,15 +13,22 @@ description: Run the Aegis definition-of-done check on the current uncommitted c
 
 ## 1. Run the gates that exist
 
-Run each one that exists in the build and record its actual result. Mark a gate *not available yet* if the build doesn't define it, and never report a pass you didn't see.
+These match the CI gates in `.github/workflows/ci.yml` and `codeql.yml` (`docs/DEVELOPMENT.md` § CI gates). Run each one that exists in the build and record its actual result. Mark a gate *not available yet* if the build doesn't define it, and never report a pass you didn't see.
 
-1. `./gradlew assembleDebug`
-2. `./gradlew test`
-3. `./gradlew lint detekt ktlintCheck`
-4. Module-specific tests for the touched modules
-5. `python3 .claude/hooks/test_hooks.py` if anything under `.claude/hooks/` changed
+1. `./gradlew checkModuleGraph checkSourceRules`: module dependency rules (ARCHITECTURE §3). Also, in production sources only, no direct logging, hard-coded `Dispatchers.IO`/`Default`/`Main`/`Unconfined`, `GlobalScope`, `runBlocking`, or engine `!!`.
+2. `./gradlew :build-logic:convention:test`: unit tests for those checks
+3. `./gradlew assembleDebug assembleRelease`
+4. `./gradlew test koverVerify`: unit tests, plus the ≥ 80% line-coverage gate on `aegis.jvm.engine` modules
+5. `./gradlew lint detekt ktlintCheck`
+6. `./gradlew licensee`: the dependency license allowlist
+7. Module-specific tests for the touched modules
+8. `python3 .claude/hooks/test_hooks.py`: the hook self-tests, which CI also runs
 
-Instrumented tests (`connectedDebugAndroidTest`) need a device or emulator. Run them if one is attached (`adb devices`). Otherwise list them as *not run*.
+CodeQL (`codeql.yml`, CI gates item 9) runs only in CI, so list it as *not run locally*. Jazzer fuzz runs (item 4) and `tools/intel-pipeline` tests (item 6) are planned. Mark them *not available yet* until the build defines them.
+
+If a dependency or plugin changed, dependency verification is strict. Confirm that `gradle/verification-metadata.xml` was regenerated (DEVELOPMENT.md § Dependencies) and that its diff adds only the expected components. Gradle records only the artifacts it resolved. So also confirm that the test-platform artifacts were recorded by running `connectedDebugAndroidTest` with a device attached. When AGP changes, confirm that the `osx` and `windows` `aapt2` jars for the new version were added by hand, with hashes checked against Google Maven. A Linux run records only the `linux` jar, so CI stays green while macOS and Windows builds fail verification.
+
+Instrumented tests (`connectedDebugAndroidTest`) need a device or emulator. Run them if one is attached (`adb devices`). Otherwise list them as *not run*. CI runs them on API 29 and API 37 emulators.
 
 ## 2. Check that the docs are in sync
 

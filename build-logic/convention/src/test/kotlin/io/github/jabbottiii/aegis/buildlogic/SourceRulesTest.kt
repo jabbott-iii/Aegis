@@ -113,8 +113,11 @@ class SourceRulesTest {
     @Test
     fun `exempts only the logcat sink from logging rules`() {
         val sink = "app/src/main/kotlin/io/github/x/aegis/logging/LogcatSink.kt"
-        assertTrue(violations(sink, "import android.util.Log\nfun w() = Log.w(TAG, line)\n").isEmpty())
-        assertEquals(1, violations(app.replace("ui/Screen", "logging/Other"), "fun w() = Log.w(TAG, line)\n").size)
+        val log = "fun w() = Log.w(TAG, line)\n"
+        assertTrue(violations(sink, "import android.util.Log\n$log").isEmpty())
+        assertEquals(1, violations(app.replace("ui/Screen", "logging/Other"), log).size)
+        assertEquals(1, violations(sink.replace("LogcatSink.kt", "LogcatSinkExtra.kt"), log).size)
+        assertEquals(1, violations("feature/$sink", log).size)
     }
 
     @Test
