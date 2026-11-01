@@ -55,7 +55,8 @@ lookups.
   still sends SQLite's error log to logcat, and that can't be redirected. A line can carry an
   error code, the path of one of Aegis's own database files, and the text of a failing SQL
   statement. SQL never contains values (they're always bound arguments), so no user data appears
-  there. That still needs confirming on a device ([ARCHITECTURE §6](ARCHITECTURE.md#6-data-model-main-appdb)).
+  there. On an emulator, a wrong key logged only an error code, SQLCipher's own key-check
+  statement, and page numbers ([ARCHITECTURE §6](ARCHITECTURE.md#6-data-model-main-appdb)).
 
 ## User controls
 
