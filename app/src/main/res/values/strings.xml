@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Aegis</string>
+
+    <!-- Phase 0 shell. Honest claims: state that nothing runs yet. -->
+    <string name="shell_status_title">Protection</string>
+    <string name="shell_status_description">This is an early development build. App scanning, network protection, and AI threat checks aren\'t available yet.</string>
+</resources>

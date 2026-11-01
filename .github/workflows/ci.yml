@@ -1,0 +1,133 @@
+# CI gates from docs/DEVELOPMENT.md § CI gates.
+# Every Gradle run also enforces dependency verification (gradle/verification-metadata.xml).
+# Third-party actions are pinned by commit SHA. Nothing here uses secrets, and fork PRs never get any.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: Build, unit tests, and static checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      # Also validates gradle-wrapper.jar against Gradle's published checksums.
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+
+      - name: Create a throwaway release signing key
+        # The release build must be signed to install, but CI's key is generated per run and
+        # never published (DEVELOPMENT.md § CI gates, item 1).
+        run: |
+          store="$RUNNER_TEMP/ci-throwaway.jks"
+          pass="$(openssl rand -hex 24)"
+          echo "::add-mask::$pass"
+          keytool -genkeypair -noprompt -keystore "$store" -storetype PKCS12 \
+            -storepass "$pass" -keypass "$pass" -alias ci-throwaway \
+            -keyalg RSA -keysize 2048 -validity 1 -dname "CN=Aegis CI throwaway key"
+          {
+            echo "AEGIS_SIGNING_STORE_FILE=$store"
+            echo "AEGIS_SIGNING_STORE_PASSWORD=$pass"
+            echo "AEGIS_SIGNING_KEY_ALIAS=ci-throwaway"
+            echo "AEGIS_SIGNING_KEY_PASSWORD=$pass"
+          } >> "$GITHUB_ENV"
+
+      - name: Module graph and source rules
+        run: ./gradlew checkModuleGraph checkSourceRules
+
+      - name: Build-logic tests
+        run: ./gradlew :build-logic:convention:test
+
+      - name: Assemble debug and release
+        run: ./gradlew assembleDebug assembleRelease
+
+      - name: Unit tests and coverage
+        run: ./gradlew test koverVerify
+
+      - name: Android Lint, detekt, ktlint
+        run: ./gradlew lint detekt ktlintCheck
+
+      - name: License allowlist
+        run: ./gradlew licensee
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: reports
+          path: '**/build/reports/'
+          retention-days: 14
+          if-no-files-found: ignore
+
+  hooks:
+    name: Claude Code hook self-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: python3 .claude/hooks/test_hooks.py
+
+  instrumented:
+    name: Instrumented smoke tests (API ${{ matrix.api-level }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        # minSdk and compileSdk. API 37 images are published as "android-37.0".
+        api-level: ['29', '37.0']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run connected tests
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        with:
+          api-level: ${{ matrix.api-level }}
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          script: ./gradlew connectedDebugAndroidTest
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: instrumented-reports-api-${{ matrix.api-level }}
+          path: '**/build/reports/androidTests/'
+          retention-days: 14
+          if-no-files-found: ignore

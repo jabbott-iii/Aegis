@@ -1,6 +1,6 @@
 # Privacy and Data Handling
 
-*Last updated: 2026-10-31 · Status: Draft*
+*Last updated: 2026-11-01 · Status: Draft*
 
 This is the engineering specification for how Aegis handles data. It is **not** the public
 privacy policy. Write that from this document before submission, and keep the two consistent.
@@ -46,8 +46,8 @@ lookups.
 
 ## Logging
 
-- A `core:common` logging facade is the only allowed logger. Lint rules forbid `android.util.Log` and `println` elsewhere.
-- Release builds log nothing at INFO level or below. Messages above that level carry no package names, domains, URLs, file names, or message content, only event codes and counts.
+- A `core:common` logging facade is the only allowed logger. The `./gradlew checkSourceRules` CI gate fails the build on the direct logging forms it recognizes: `android.util.Log`, `print`/`println` (including `::println` references), `System.out`/`err`/`console`/`getLogger`, `printStackTrace`, `Thread.dumpStack`, and `java.util.logging`. Its one exception is the facade's logcat adapter (`app/…/logging/LogcatSink.kt`). It's a pattern scan over code with comments and strings removed, so code review still has to catch indirect routes such as reflection. detekt also bans the `android.util.Log` import.
+- Release builds log nothing at INFO level or below. Messages above that level carry no package names, domains, URLs, file names, or message content. They carry only an event identifier built from enum names (`<area>.<event>`), numeric counts, sizes, or durations, and for errors the exception's class name, never its message. Numbers are never identifiers such as UIDs, IP addresses, ports, or hashes.
 - Debug builds may log more, but only to logcat and never to files.
 
 ## User controls

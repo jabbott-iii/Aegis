@@ -1,6 +1,6 @@
 # Testing Strategy
 
-*Last updated: 2026-10-31 · Status: Draft*
+*Last updated: 2026-11-01 · Status: Draft*
 
 ---
 
@@ -81,6 +81,10 @@ Before each model release, in the lab:
 
 ## 6. CI gates (summary)
 
-These are required checks on `main`: build (debug and release), unit and Robolectric tests,
-lint, detekt, ktlint, short fuzz runs, emulator instrumented smoke tests (API 29 and 37), pipeline
-tests, Gradle dependency verification, and the license allowlist. Details are in [DEVELOPMENT](DEVELOPMENT.md#ci-gates).
+These gates run on every PR. Once the workflows have run on GitHub, the owner makes them required checks on `main` in branch protection: build (debug and release), unit tests with the engine
+coverage gate (`koverVerify`), lint, detekt, ktlint, `checkModuleGraph`, `checkSourceRules`,
+build-logic tests, emulator instrumented smoke tests (API 29 and 37), Gradle dependency
+verification, the license allowlist, the Claude Code hook self-tests, and CodeQL. Planned
+additions: Robolectric tests (with the first Android adapter that needs them), short fuzz runs
+(with the first parser), and pipeline tests (with `tools/intel-pipeline`). Details are in
+[DEVELOPMENT](DEVELOPMENT.md#ci-gates).

@@ -1,6 +1,6 @@
 # Permissions and Google Play Policy
 
-*Last updated: 2026-10-31 · Status: Draft. Re-check every Play policy reference before submission, because policies change.*
+*Last updated: 2026-11-01 · Status: Draft. Re-check every Play policy reference before submission, because policies change.*
 
 **Rule:** a PR that adds a permission, an exported component, or a sensitive API must update
 this file in the same PR.
@@ -33,6 +33,26 @@ this file in the same PR.
 | Location (fine or coarse) | Only needed for Wi-Fi SSID and BSSID, which Aegis doesn't read |
 | `PACKAGE_USAGE_STATS` | Not needed for any 1.0 feature |
 | `READ_MEDIA_*` | Shared media arrives through the share sheet or the picker, which needs no permission |
+
+### Exported components and merged manifest entries
+
+What the merged **release** manifest declares today. The app's own manifest requests no permissions. The merged manifest has one library-added self permission (below).
+Re-check `app/build/intermediates/merged_manifest/release/processReleaseMainManifest/AndroidManifest.xml`
+whenever a dependency changes, because libraries can merge in components and permissions.
+
+| Entry | Comes from | Exported | Protection | Why |
+|---|---|---|---|---|
+| `MainActivity` (`MAIN`/`LAUNCHER`) | `app` | Yes (the platform requires it for the launcher) | None needed. It reads no intent data or extras. | Launcher entry point |
+| `androidx.profileinstaller.ProfileInstallReceiver` | `androidx.profileinstaller`, through Compose | Yes | `android.permission.DUMP` (signature\|privileged\|development): held by the system, privileged system apps, and the adb shell. Ordinary apps can't get it. | Installs baseline profiles (NFR-PERF-03) |
+| `androidx.startup.InitializationProvider` | `androidx.startup` | No | — | Library initializers |
+| `<permission>` `io.github.jabbottiii.aegis.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | `androidx.core` | — | `signature` | Protects receivers registered with `RECEIVER_NOT_EXPORTED` on API < 33 |
+| `<uses-permission>` for that same permission | `androidx.core` | — | Only apps signed with Aegis's key can hold it | Aegis grants it to itself so that it can send to those receivers |
+
+Debug builds also merge in two exported activities that never reach a release build:
+- `androidx.compose.ui.tooling.PreviewActivity` (from `ui-tooling`, `debugImplementation`). It has no protection, and it runs the composable that an intent extra names.
+- `androidx.activity.ComponentActivity` (from `ui-test-manifest`). Compose UI tests use it as their host.
+
+Don't hand debug builds to testers outside the team.
 
 ## 2. Prominent disclosures
 

@@ -13,6 +13,7 @@ it Accepted, revises it, or rejects it after the Phase 0 spikes.
 | [0004](0004-no-accessibility-service.md) | Do not use AccessibilityService | Proposed |
 | [0005](0005-llms-excluded-from-verdict-path.md) | LLMs excluded from the verdict path | Proposed |
 | [0006](0006-signed-threat-intel-updates.md) | Signed, versioned threat-intel bundles with delegated signing | Proposed |
+| [0007](0007-platform-and-build-baseline.md) | Platform and build baseline (application ID, SDK levels, toolchain) | Proposed |
 
 ## Template
 

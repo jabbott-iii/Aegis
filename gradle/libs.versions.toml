@@ -1,0 +1,91 @@
+# Every dependency and plugin version lives here (DEVELOPMENT.md § Dependencies).
+# Before adding an entry, check its license against the allowlist in build-logic
+# (QualityConventions.kt), its maintenance activity, its transitive size, and any manifest
+# permissions it merges. Regenerate gradle/verification-metadata.xml in the same change.
+
+[versions]
+# SDK levels are read by the convention plugins, never by module build files.
+sdk-compile = "37"
+sdk-target = "37"
+sdk-min = "29"
+jvm-target = "17"
+
+agp = "9.5.0"
+kotlin = "2.4.21"
+ksp = "2.3.13"
+hilt = "2.60.1"
+coroutines = "1.11.0"
+
+androidx-activity = "1.13.0"
+androidx-core = "1.19.1"
+androidx-lifecycle = "2.11.0"
+compose-bom = "2026.09.00"
+
+junit4 = "4.13.2"
+junit5 = "5.14.4"
+turbine = "1.2.1"
+androidx-test-ext-junit = "1.3.0"
+androidx-test-runner = "1.7.0"
+# compose ui-test pulls espresso 3.5, which breaks on API 37 (InputManager.getInstance was removed).
+androidx-test-espresso = "3.7.0"
+
+detekt = "1.23.8"
+# detekt 1.23.x runs on the Kotlin compiler it was built with, not the project's Kotlin.
+detekt-kotlin = "2.0.21"
+ktlint-gradle = "14.2.0"
+ktlint = "1.8.0"
+kover = "0.9.11"
+licensee = "1.14.1"
+
+[libraries]
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
+androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
+
+androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "compose-bom" }
+androidx-compose-material3 = { module = "androidx.compose.material3:material3" }
+androidx-compose-ui = { module = "androidx.compose.ui:ui" }
+androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+androidx-compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
+androidx-compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
+
+hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
+hilt-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hilt" }
+
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+junit4 = { module = "junit:junit", version.ref = "junit4" }
+junit5-bom = { module = "org.junit:junit-bom", version.ref = "junit5" }
+junit5-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit5-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
+androidx-test-ext-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-test-ext-junit" }
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidx-test-runner" }
+androidx-test-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "androidx-test-espresso" }
+
+# Gradle plugins used by build-logic. They are implementation dependencies of the convention
+# plugins, so module build files apply them only through the aegis.* plugin IDs.
+android-gradle-plugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }
+kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+compose-compiler-gradle-plugin = { module = "org.jetbrains.kotlin:compose-compiler-gradle-plugin", version.ref = "kotlin" }
+ksp-gradle-plugin = { module = "com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
+hilt-gradle-plugin = { module = "com.google.dagger:hilt-android-gradle-plugin", version.ref = "hilt" }
+detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
+ktlint-gradle-plugin = { module = "org.jlleitschuh.gradle:ktlint-gradle", version.ref = "ktlint-gradle" }
+kover-gradle-plugin = { module = "org.jetbrains.kotlinx:kover-gradle-plugin", version.ref = "kover" }
+licensee-gradle-plugin = { module = "app.cash.licensee:licensee-gradle-plugin", version.ref = "licensee" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+
+aegis-android-application = { id = "aegis.android.application" }
+aegis-android-library = { id = "aegis.android.library" }
+aegis-android-compose = { id = "aegis.android.compose" }
+aegis-jvm-library = { id = "aegis.jvm.library" }
+aegis-jvm-engine = { id = "aegis.jvm.engine" }
+aegis-hilt = { id = "aegis.hilt" }
+aegis-root = { id = "aegis.root" }

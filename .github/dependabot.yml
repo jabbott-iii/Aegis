@@ -1,0 +1,20 @@
+# Dependency update PRs (DEVELOPMENT.md § Dependencies). Dependabot doesn't regenerate
+# gradle/verification-metadata.xml, so a Gradle update PR fails CI until someone reviews the new
+# artifacts and regenerates the metadata in the same PR. That review step is intended.
+version: 2
+updates:
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      androidx:
+        patterns: ['androidx.*']
+      kotlin:
+        patterns: ['org.jetbrains.kotlin*', 'com.google.devtools.ksp*']
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

@@ -3,9 +3,10 @@
 Aegis is an Android security app in Kotlin. It covers antivirus scanning, a device security audit,
 DNS-level network protection, AI threat defenses, and an opt-in AI Crawler Shield.
 
-**Status:** planning is complete and no application code exists yet. The next step is **Phase 0**
-(scaffold, CI, and spikes S1–S7). See `docs/PLAN.md`. When the build exists, update
-"Commands" below to match what actually runs.
+**Status:** **Phase 0** is in progress. The Gradle scaffold, the CI workflows, and the foundation
+modules (`app`, `core:common`, `core:model`, `core:ui`, `testing:common`) exist. Still to do in
+Phase 0: encrypted Room and DataStore, `core:security`, and spikes S1–S7. See `docs/PLAN.md`.
+Keep "Commands" below in step with what actually runs.
 
 ## Where the truth lives
 
@@ -55,24 +56,34 @@ Each of these comes from an ADR or an NFR. Changing one requires a new or revise
 
 ## Conventions
 
-- Kotlin official style, enforced by ktlint and detekt. Engine modules use explicit API mode and no `!!`. Inject dispatchers and the clock. Never use `GlobalScope`.
+- `ktlint_official` code style (`.editorconfig`), enforced by ktlint, plus detekt. Engine modules use explicit API mode and no `!!`. Inject dispatchers and the clock. Never use `GlobalScope`.
 - Parsers return `ParseResult.Rejected(reason)` instead of throwing on hostile input.
 - All dependencies go in `gradle/libs.versions.toml`, with no inline versions.
 - Commit messages follow Conventional Commits (`feat(shield): …`). Branches: `feat/…`, `fix/…`, `docs/…`, `spike/S<n>-…`.
-- Base package and applicationId: **TBD**. Ask the user during the Phase 0 scaffold and record the decision here.
+- Base package and applicationId: **`io.github.jabbottiii.aegis`** (chosen 2026-11-01, ADR-0007; the applicationId can't change after the first Play upload). Library modules use `io.github.jabbottiii.aegis.<area>.<name>`, with the namespace derived from the Gradle path. `:app` uses the base package.
+- minSdk **29**, compileSdk and targetSdk **37** (chosen 2026-11-01, ADR-0007). These live in `gradle/libs.versions.toml` and only the convention plugins read them.
 
 ## Commands
 
-The build doesn't exist yet. These are the planned commands (DEVELOPMENT.md § CI gates). Don't claim
-any of them passed unless you ran them and saw the result.
+These match the CI gates (`.github/workflows/ci.yml`, DEVELOPMENT.md § CI gates). CI's plain `detekt` has no type resolution, so don't rely on type-resolved detekt rules. `checkSourceRules` covers the critical ones. Don't claim any
+of them passed unless you ran them and saw the result.
 
 ```bash
-./gradlew assembleDebug
-./gradlew test                      # unit + Robolectric
+./gradlew checkModuleGraph checkSourceRules   # module rules (ARCHITECTURE §3) + no direct logging, dispatchers, GlobalScope, engine !!
+./gradlew :build-logic:convention:test         # tests for those checks
+./gradlew assembleDebug assembleRelease
+./gradlew test koverVerify            # unit tests + the ≥ 80% engine coverage gate
 ./gradlew lint detekt ktlintCheck
-./gradlew :<module>:test            # one module
-./gradlew connectedDebugAndroidTest # needs emulator/device
+./gradlew licensee                    # dependency license allowlist
+./gradlew :<module>:test              # one module
+./gradlew connectedDebugAndroidTest   # needs an emulator or device
+python3 .claude/hooks/test_hooks.py   # Claude Code hook self-tests
+./gradlew ktlintFormat                # auto-fix formatting
 ```
+
+- The Gradle daemon runs on **JDK 21** (`gradle/gradle-daemon-jvm.properties`), because detekt 1.23 can't start on JDK 25. Gradle doesn't download one. A JDK 21 must be on `JAVA_HOME` or `PATH` or in a detected location. To use Android Studio's JBR, set `JAVA_HOME` to it.
+- Point Gradle at the SDK with `ANDROID_HOME` or with `sdk.dir` in the gitignored `local.properties`.
+- Dependency verification is strict. After any dependency change, regenerate `gradle/verification-metadata.xml` (DEVELOPMENT.md § Dependencies) and review its diff.
 
 ## How to work here
 

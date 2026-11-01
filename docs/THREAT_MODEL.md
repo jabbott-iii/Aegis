@@ -1,6 +1,6 @@
 # Aegis Threat Model
 
-*Last updated: 2026-10-31 · Status: Draft. Review at every milestone and whenever a permission or data flow changes.*
+*Last updated: 2026-11-01 · Status: Draft. Review at every milestone and whenever a permission or data flow changes.*
 
 This document has two parts:
 
@@ -92,8 +92,9 @@ flowchart LR
 | Spoofing | A repackaged Aegis APK is distributed with malware | Play App Signing, and a runtime self-check of the signing certificate with a warning screen | Instrumented test with a re-signed build |
 | **T**ampering | A rollback to an old bundle that does not detect a new family | Monotonic version check. The previous bundle is kept only for local rollback. | Unit tests |
 | Tampering | A malicious app sends crafted intents to Aegis's exported share activity | MIME and size limits, copy into the sandbox, parse in `:parser`, no implicit actions | Fuzzed intents, plus a MASTG platform test |
+| Tampering | A malicious app starts the exported launcher activity, or broadcasts to the library-merged `ProfileInstallReceiver` | The launcher activity reads no intent data or extras. `ProfileInstallReceiver` requires `android.permission.DUMP`, which ordinary apps can't hold. Only the system, privileged system apps, and the adb shell have it. Debug builds also export Compose's `PreviewActivity`, with no protection, so debug builds stay inside the team ([PERMISSIONS_AND_POLICY § Exported components](PERMISSIONS_AND_POLICY.md#exported-components-and-merged-manifest-entries)). | Merged-manifest review on every dependency change |
 | **R**epudiation | A user disputes that Aegis took an action | A local, append-only action log (alerts shown, user decisions). It is never uploaded. | Review |
-| **I**nformation disclosure | The app inventory or DNS counters leak through backup, logs, or a world-readable file | `allowBackup=false`, exclusion rules, SQLCipher, a PII-free logging facade, no external-storage writes | MASTG storage tests, plus a lint rule that bans `Log.*` |
+| **I**nformation disclosure | The app inventory or DNS counters leak through backup, logs, or a world-readable file | `allowBackup=false`, exclusion rules, SQLCipher, a PII-free logging facade, no external-storage writes | MASTG storage tests, plus the `checkSourceRules` CI gate, which bans `Log.*`, `println`, and `System.out`/`err` outside the logging facade |
 | Information disclosure | A screen-reading app captures Aegis screens, such as the safe word | `FLAG_SECURE` and `setAccessibilityDataSensitive` on sensitive screens | Instrumented test |
 | **D**enial of service | A zip bomb or malformed DEX hangs or crashes the scanner | Isolated process, entry and size and ratio limits, timeouts, crash-tolerant orchestrator that records an *unscannable* finding | Jazzer fuzzing plus a corpus of malformed fixtures |
 | Denial of service | A Shield bug breaks device connectivity | Fail open with a persistent alert, a watchdog, and a kill switch in the notification | Chaos tests in S1 and the Phase 3 test plan |

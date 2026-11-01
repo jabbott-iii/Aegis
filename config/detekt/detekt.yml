@@ -1,0 +1,40 @@
+# Overrides on top of detekt's default config (buildUponDefaultConfig = true).
+# No baselines and no blanket suppressions (.claude/rules/build-and-dependencies.md).
+#
+# CI runs plain `detekt`, which has no type resolution, so rules marked @RequiresTypeResolution
+# (InjectDispatcher, UnsafeCallOnNullableType, ForbiddenMethodCall, ...) never fire. Don't rely on
+# them. `./gradlew checkSourceRules` (build-logic SourceRules.kt) enforces logging, dispatcher,
+# GlobalScope, runBlocking, and `!!` rules instead.
+
+config:
+  validation: true
+
+build:
+  maxIssues: 0
+
+coroutines:
+  GlobalCoroutineUsage:
+    active: true
+
+naming:
+  FunctionNaming:
+    ignoreAnnotated: ['Composable']
+
+complexity:
+  LongParameterList:
+    ignoreAnnotated: ['Composable']
+
+style:
+  ForbiddenImport:
+    active: true
+    imports:
+      - value: 'android.util.Log'
+        reason: 'Use the core:common logging facade so that no PII reaches logs (PRIVACY.md § Logging).'
+    # The logcat sink is the facade's only Android adapter.
+    excludes: ['**/app/src/main/kotlin/**/logging/LogcatSink.kt']
+  MagicNumber:
+    ignorePropertyDeclaration: true
+    ignoreAnnotated: ['Preview', 'PreviewLightDark', 'PreviewFontScale']
+  UnusedPrivateMember:
+    # Compose previews are private and only the IDE calls them.
+    ignoreAnnotated: ['Preview', 'PreviewLightDark', 'PreviewFontScale']

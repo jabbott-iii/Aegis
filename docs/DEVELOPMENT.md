@@ -1,14 +1,14 @@
 # Development Guide
 
-*Last updated: 2026-10-31 · Status: Planned. No code exists yet. This describes the intended setup for Phase 0.*
+*Last updated: 2026-11-01 · Status: Phase 0 scaffold in place. Sections marked "planned" describe later work.*
 
 ---
 
-## Prerequisites (planned)
+## Prerequisites
 
 - Android Studio (latest stable)
-- The JDK version required by the Android Gradle Plugin version pinned in `gradle/libs.versions.toml` (use the Android Studio bundled JDK unless CI pins another)
-- Android SDK with the compileSdk platform (latest stable; API 37 at the time of writing)
+- **JDK 21** for the Gradle daemon ([ADR-0007](adr/0007-platform-and-build-baseline.md)). `gradle/gradle-daemon-jvm.properties` asks for it, and detekt 1.23 can't start on JDK 25. Compiled code targets Java 17. Gradle doesn't download a JDK. It has to find one: through `JAVA_HOME` or the `java` on `PATH`, in an OS-standard location such as `/usr/lib/jvm`, or from SDKMAN!, asdf, or Gradle-provisioned toolchains. Android Studio's bundled JBR counts only if you point at it, for example with `export JAVA_HOME=/path/to/android-studio/jbr` or with `org.gradle.java.installations.paths` in `~/.gradle/gradle.properties`.
+- Android SDK with the compileSdk platform (API 37, `platforms;android-37.0`). Set `ANDROID_HOME` or `sdk.dir` in `local.properties`.
 - An emulator or a device running API 29 or newer
 
 The repository's `.gitignore` already excludes `local.properties`, keystores (`*.jks`, `*.keystore`), `google-services.json`, and build outputs. Keep it that way.
@@ -19,15 +19,24 @@ See [ARCHITECTURE § Module layout](ARCHITECTURE.md#3-module-layout). The conven
 
 | Plugin | Applies to | Sets |
 |---|---|---|
-| `aegis.android.application` | `app` | SDK levels, R8, signing config from env, baseline profile |
-| `aegis.android.library` | Android library modules | SDK levels, lint, test options |
-| `aegis.android.compose` | UI modules | Compose compiler, previews |
-| `aegis.jvm.engine` | Pure Kotlin engine modules | Explicit API mode, `allWarningsAsErrors`, Jazzer setup |
+| `aegis.android.application` | `app` only (it refuses any other module) | SDK levels, R8 and resource shrinking, release signing from `AEGIS_SIGNING_*` environment variables. A baseline profile is planned for Phase 7. Fixture APKs will need their own plugin. |
+| `aegis.android.library` | Android library modules | SDK levels, lint, test options, namespace from the Gradle path |
+| `aegis.android.compose` | UI modules | Compose compiler, the Compose BOM, previews |
+| `aegis.jvm.library` | Plain Kotlin/JVM modules (`testing:common`) | Kotlin JVM with `-Xjdk-release=17`, JUnit 5 |
+| `aegis.jvm.engine` | Pure Kotlin engine and core modules | Everything in `aegis.jvm.library`, plus explicit API mode, `allWarningsAsErrors`, and the Kover ≥ 80% line-coverage gate. Jazzer gets wired in with the first parser (Phase 1). |
 | `aegis.hilt` | Modules with DI | Hilt + KSP |
+| `aegis.root` | The root project | `checkModuleGraph` (plus a `checkResolvedGraph` task in each module) and `checkSourceRules` |
+
+Every module plugin also applies detekt (`config/detekt/detekt.yml`), ktlint (`.editorconfig`), and
+the licensee allowlist (Apache-2.0, MIT, BSD-2-Clause, BSD-3-Clause). The module build files apply
+plugins and declare dependencies, and nothing else.
+
+AGP 9 compiles Kotlin itself ("built-in Kotlin"), so Android modules don't apply
+`org.jetbrains.kotlin.android`.
 
 ## Conventions
 
-- **Kotlin:** official Kotlin coding conventions, enforced by ktlint, with detekt for complexity and code smells.
+- **Kotlin:** ktlint's `ktlint_official` code style (a stricter superset of the Kotlin coding conventions, configured in `.editorconfig`), plus detekt for complexity and code smells.
 - **Engine modules:** explicit API mode, no `!!`, no Android imports, all I/O behind interfaces, and dispatchers injected rather than hardcoded.
 - **Coroutines:** structured concurrency only. No `GlobalScope`. Every long-running loop must be cancellable and respect `isActive`.
 - **Errors:** use typed results at module boundaries, and use exceptions only for programmer errors. Parsers return a `ParseResult.Rejected(reason)` instead of throwing on hostile input.
@@ -44,17 +53,20 @@ See [ARCHITECTURE § Module layout](ARCHITECTURE.md#3-module-layout). The conven
 
 ## CI gates
 
-These checks will run in GitHub Actions on every PR:
+These checks run in GitHub Actions on every PR (`.github/workflows/ci.yml` and `codeql.yml`).
+Items 4 and 6 start once their first code lands.
 
 1. `./gradlew assembleDebug assembleRelease` (the release build uses a throwaway CI key and is never published)
-2. `./gradlew test` (unit and Robolectric)
-3. `./gradlew lint detekt ktlintCheck`
-4. Short fuzz runs (Jazzer, time-boxed)
+2. `./gradlew test koverVerify`: unit tests, plus the ≥ 80% line-coverage gate on engine modules. Robolectric tests join with the first Android adapter that needs them.
+3. `./gradlew lint detekt ktlintCheck`. Lint fails on errors, and the convention plugin promotes the TLS, Network Security Config (user CAs, insecure base config), exported-component, WebView, dynamic-code-loading, and world-readable-file checks to errors. CI's plain `detekt` has no type resolution, so rules that need it don't run (see `config/detekt/detekt.yml`).
+4. Short fuzz runs (Jazzer, time-boxed). *Planned: starts with the first parser.*
 5. Instrumented smoke tests on emulators: API 29 and API 37
-6. `tools/intel-pipeline` tests
-7. Gradle **dependency verification** (`gradle/verification-metadata.xml`)
-8. **License allowlist** check for dependencies (for example, with a license-validation Gradle plugin such as Cash App's *licensee*)
+6. `tools/intel-pipeline` tests. *Planned: start with the pipeline in Phase 2.*
+7. Gradle **dependency verification** (`gradle/verification-metadata.xml`), which applies to every Gradle run
+8. **License allowlist** check for dependencies: `./gradlew licensee` (Cash App's licensee, with the allowlist in `QualityConventions.kt`)
 9. CodeQL analysis for Java and Kotlin
+10. `./gradlew checkModuleGraph checkSourceRules`: module dependency rules, including transitive dependencies, plus the source rules for logging, dispatchers, `GlobalScope`, `runBlocking`, and engine `!!`
+11. `./gradlew :build-logic:convention:test` (tests for those checks) and `python3 .claude/hooks/test_hooks.py`
 
 Workflow hardening:
 
@@ -66,7 +78,16 @@ Workflow hardening:
 
 - Declare every dependency in the version catalog, with no inline versions.
 - Before adding a dependency, check its license against the allowlist, its maintenance activity, and its transitive size and permissions. Prefer platform or AndroidX APIs.
-- Renovate or Dependabot opens update PRs. Update the dependency verification metadata in the same PR.
+- Dependabot (`.github/dependabot.yml`) opens update PRs. Update the dependency verification metadata in the same PR.
+- **Regenerating verification metadata.** Run the CI task set with `--write-verification-metadata sha256`, then review the diff. Every new artifact needs a reason to be there:
+
+  ```bash
+  ./gradlew --no-configuration-cache --write-verification-metadata sha256 \
+    checkModuleGraph assembleDebug assembleRelease assembleDebugAndroidTest \
+    test lint detekt ktlintCheck licensee koverVerify
+  ```
+
+  With a device or emulator attached, also run `connectedDebugAndroidTest` the same way so that the test-platform artifacts get recorded. Gradle only records the artifacts it resolved, which on Linux means only the `linux` `aapt2` jar. When AGP changes, add the `osx` and `windows` `aapt2` jars for the new version by hand, and check each hash against the SHA-1 that Google Maven publishes.
 - **Forbidden:** analytics, ads, or attribution SDKs, and any SDK that makes network calls Aegis doesn't control.
 
 ## Secrets and signing

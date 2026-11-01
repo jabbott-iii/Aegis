@@ -1,6 +1,6 @@
 # Aegis Architecture
 
-*Last updated: 2026-10-31 · Status: Proposed (validate with Phase 0 spikes)*
+*Last updated: 2026-11-01 · Status: Proposed (validate with Phase 0 spikes)*
 
 Related: [Plan](PLAN.md) · [Requirements](REQUIREMENTS.md) · [Threat model](THREAT_MODEL.md) · [ADRs](adr/README.md)
 
@@ -55,7 +55,7 @@ Both processes memory-map intel bundle parts read-only.
 ```
 Aegis/
 ├── app/                      # Application, nav graph, DI root, manifest merge point
-├── build-logic/              # Gradle convention plugins (android-library, compose, engine, test)
+├── build-logic/              # Convention plugins and checks (DEVELOPMENT § Project layout)
 ├── core/
 │   ├── common/               # Result types, dispatchers, clock, PII-safe logging facade
 │   ├── model/                # Domain models: AppRecord, Finding, Verdict, Severity, IntelVersion…
@@ -89,6 +89,23 @@ Aegis/
 - `feature:*` → `core:*`, plus the engine and shield APIs it needs. Feature modules never depend on each other.
 - `engine:*`, `shield:dns`, and `ai:guard` are **pure Kotlin/JVM wherever possible** (no Android framework), which keeps them fast to unit-test and fuzz. Android adapters live in `engine:scanner`, `shield:vpn`, and `app`.
 - Only `core:security` touches the Keystore and Tink. Only `intel:client` performs network I/O for bundles.
+
+`./gradlew checkModuleGraph` (`build-logic/…/ModuleGraph.kt`, with unit tests) enforces the
+following. The pure modules are exactly the six that CLAUDE.md § Architecture rules lists:
+`engine:apk`, `engine:signatures`, `engine:heuristics`, `shield:dns`, `core:model`, and
+`core:common`. Whether `ai:guard` can be pure is still open. The check reads declared dependencies
+in every configuration, and resolves each module's production compile and runtime classpaths
+(every variant, never test classpaths), so transitive dependencies count too. It fails if:
+- a pure module applies an Android plugin, or reaches an Android module or library (`androidx`, `com.android`, `com.google.android`, `org.robolectric`)
+- a feature module declares or reaches another feature module
+- a module reaches Tink at runtime without going through `core:security`, or sees Tink on its compile classpath at all (an `api` leak)
+- the same applies to OkHttp, with `intel:client` and `shield:dns` (the DoH upstream) as the allowed modules
+- a module declares a file dependency in a dependency bucket (`implementation`, `api`, `compileOnly`, `runtimeOnly`, their test and variant forms, `ksp`, `kapt`, `annotationProcessor`, `lintChecks`, `detektPlugins`, or `coreLibraryDesugaring`), which would bypass the catalog and dependency verification
+
+The Keystore rule and the "only `intel:client` does bundle network I/O" rule are reviewed by hand.
+
+Phase 0 created `app`, `core:common`, `core:model`, `core:ui`, and `testing:common`. The other
+modules are added with `/new-module` when their phase starts.
 
 ## 4. Component overview
 
@@ -240,7 +257,7 @@ Instead, Aegis opens the system battery settings with guidance for each OEM.
 - **Untrusted input isolation:** parsing runs in `:parser` with hard limits (max entries, max uncompressed size, compression-ratio guard against zip bombs, and timeouts).
 - **Integrity of updates:** Ed25519 signatures with pinned public keys, monotonic versions, and expiry ([ADR-0006](adr/0006-signed-threat-intel-updates.md)).
 - **Network:** the Network Security Config disables cleartext traffic and trusts only system CAs. Bundle hosts are fetched over HTTPS. Integrity comes from the signature rather than from the transport, so certificate pinning is not required.
-- **Exported surface:** activities that accept share or VIEW intents validate MIME type and size and copy content into the sandbox before parsing. The VPN and notification-listener services are protected by their system bind permissions. Nothing else is exported.
+- **Exported surface:** activities that accept share or VIEW intents validate MIME type and size and copy content into the sandbox before parsing. The VPN and notification-listener services are protected by their system bind permissions. Beyond those, release builds export only the launcher activity (which reads no intent data) and the library-merged `ProfileInstallReceiver`, which `android.permission.DUMP` guards. Debug builds also export Compose's `PreviewActivity` and test host ([PERMISSIONS_AND_POLICY § Exported components](PERMISSIONS_AND_POLICY.md#exported-components-and-merged-manifest-entries)).
 - **Self-protection:** a startup check verifies the signing certificate against the expected digest. Sensitive screens use `FLAG_SECURE` and `setAccessibilityDataSensitive` (API 34+). Aegis warns the user when an unknown accessibility service is enabled.
 - **Secrets:** there are no API keys in the APK. Optional features that need keys (such as Web Risk) require a backend proxy (open decision #4).
 
@@ -250,6 +267,7 @@ Pin exact versions in `gradle/libs.versions.toml` at scaffold time. Use current 
 
 | Concern | Choice | Notes |
 |---|---|---|
+| Build | Gradle (Kotlin DSL) with convention plugins in `build-logic/`, AGP 9 built-in Kotlin, KSP | Versions are pinned in `gradle/libs.versions.toml`, and dependency verification is strict |
 | Language | Kotlin 2.x (K2), coroutines, Flow | Explicit API mode in engine modules |
 | UI | Jetpack Compose, Material 3, Navigation Compose | |
 | DI | Hilt (KSP) | |

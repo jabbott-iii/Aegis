@@ -4,7 +4,8 @@ Aegis is a planned Android security app, written in Kotlin. It gives you standar
 mobile antivirus protection and adds defenses against AI-era threats, including an optional
 **AI Crawler Shield** that blocks known AI crawler and agent networks.
 
-> **Status: planning.** The repository has documentation and no application code yet.
+> **Status: Phase 0 (foundations).** The build, CI, and an app shell exist. The shell offers no
+> protection yet.
 > Each design decision below is a proposal and stays one until an ADR in
 > [`docs/adr/`](docs/adr/README.md) marks it *Accepted*.
 
@@ -44,11 +45,11 @@ mobile antivirus protection and adds defenses against AI-era threats, including 
 | [ADRs](docs/adr/README.md) | Architecture decision records |
 | [Security policy](SECURITY.md) | How to report vulnerabilities |
 
-## Planned platform baseline
+## Platform baseline
 
 - **Language/UI:** Kotlin, Jetpack Compose, Material 3
-- **minSdk:** 29 (Android 10) proposed. See [PLAN § Open decisions](docs/PLAN.md#6-open-decisions).
-- **targetSdk:** at least 36. Since Aug 31 2026, Google Play has required new apps and updates to target Android 16 (API 36). Android 17 (API 37) is stable, so plan to target 37 at launch.
+- **minSdk:** 29 (Android 10), chosen 2026-11-01 ([ADR-0007](docs/adr/0007-platform-and-build-baseline.md), proposed).
+- **targetSdk:** 37 (Android 17). Since Aug 31 2026, Google Play has required new apps and updates to target Android 16 (API 36) or higher.
 
 ## License
 

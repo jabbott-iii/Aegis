@@ -1,6 +1,6 @@
 # Aegis Requirements
 
-*Last updated: 2026-10-31 · Status: Draft*
+*Last updated: 2026-11-01 · Status: Draft*
 
 **Priorities:** **P0** = required for 1.0 · **P1** = should ship in 1.0 · **P2** = post-1.0 · **P3** = exploratory.
 Each requirement links to the spec that defines its acceptance criteria in detail.
@@ -153,7 +153,7 @@ Budgets are targets measured on the reference mid-range device defined in [TESTI
 | NFR-REL-01 | The Shield recovers after a process death and after reboot (via Always-on VPN when the user enables it). |
 | NFR-REL-02 | An intel update failure never removes existing protection (last-good bundle is retained). |
 | NFR-REL-03 | Crash-free sessions ≥ 99.5% in the closed test. |
-| NFR-COMP-01 | minSdk 29 (proposed). targetSdk ≥ 36, with 37 the aim at launch. compileSdk set to the latest stable. |
+| NFR-COMP-01 | minSdk 29, targetSdk 37, compileSdk 37 (the owner's choice, 2026-11-01, [ADR-0007](adr/0007-platform-and-build-baseline.md)). targetSdk never falls below Play's current minimum. |
 | NFR-COMP-02 | ABIs: arm64-v8a (primary), armeabi-v7a, and x86_64 (emulators and Chromebooks). |
 | NFR-A11Y-01 | TalkBack is fully supported, touch targets are ≥ 48 dp, and status is never conveyed by color alone. |
 | NFR-I18N-01 | All user-facing strings are externalized and the layouts are RTL-safe. English ships first. |

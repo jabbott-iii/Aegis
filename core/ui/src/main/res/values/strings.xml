@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Status labels (FR-UX-02). Describe what was observed, never a guarantee. -->
+    <string name="aegis_status_ok">No issues found</string>
+    <string name="aegis_status_review">Review recommended</string>
+    <string name="aegis_status_action_needed">Action needed</string>
+    <string name="aegis_status_off">Off</string>
+    <string name="aegis_status_not_checked">Not checked yet</string>
+</resources>

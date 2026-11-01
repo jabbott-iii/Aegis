@@ -1,6 +1,6 @@
 # Aegis Implementation Plan
 
-*Last updated: 2026-10-31 · Status: Draft for owner review*
+*Last updated: 2026-11-01 · Status: Draft for owner review. Phase 0 in progress.*
 
 This plan takes Aegis from an empty repository to a 1.0 release on Google Play. Work is
 sequenced so the highest-risk platform questions are answered first (Phase 0 spikes), so that a
@@ -196,7 +196,7 @@ The owner needs to decide these. Each one changes scope or architecture.
 2. **Commercial or non-commercial.** This determines whether Google Safe Browsing (non-commercial only) or Web Risk is usable, and whether abuse.ch data requires a paid plan.
 3. **Distribution.** Choose between Play only and Play plus GitHub Releases or F-Droid. F-Droid would require a `foss` flavor without Play Integrity or ML Kit.
 4. **Backend.** The plan assumes static hosting only. Play Integrity verdicts, Web Risk lookups, and cloud reputation all need a minimal server, so they are P2 features.
-5. **minSdk 29 vs. 31.** API 29 is the minimum for per-app VPN attribution (`getConnectionOwnerUid`). Moving to 31 removes Wi-Fi security-type and other compatibility branches but drops Android 10 and 11 devices.
+5. **minSdk 29 vs. 31.** *The owner chose minSdk 29 on 2026-11-01 ([ADR-0007](adr/0007-platform-and-build-baseline.md)).* API 29 is the minimum for per-app VPN attribution (`getConnectionOwnerUid`). Moving to 31 removes Wi-Fi security-type and other compatibility branches but drops Android 10 and 11 devices.
 6. **Default DNS upstream.** The options are the network resolver, a security-focused DoH resolver (for example, Quad9), or a user choice at onboarding. Whichever is chosen must be disclosed.
 7. **Project license.** This affects contributions and how third-party data is redistributed.
 
