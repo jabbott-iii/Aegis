@@ -45,6 +45,7 @@ whenever a dependency changes, because libraries can merge in components and per
 | `MainActivity` (`MAIN`/`LAUNCHER`) | `app` | Yes (the platform requires it for the launcher) | None needed. It reads no intent data or extras. | Launcher entry point |
 | `androidx.profileinstaller.ProfileInstallReceiver` | `androidx.profileinstaller`, through Compose | Yes | `android.permission.DUMP` (signature\|privileged\|development): held by the system, privileged system apps, and the adb shell. Ordinary apps can't get it. | Installs baseline profiles (NFR-PERF-03) |
 | `androidx.startup.InitializationProvider` | `androidx.startup` | No | — | Library initializers |
+| `androidx.room3.MultiInstanceInvalidationService` (`directBootAware`) | `androidx.room3:room3-runtime`, through `core:data` | No | — | Lets one process see another's writes to a shared Room database. It's idle unless a database enables multi-instance invalidation, which none does yet. |
 | `<permission>` `io.github.jabbottiii.aegis.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | `androidx.core` | — | `signature` | Protects receivers registered with `RECEIVER_NOT_EXPORTED` on API < 33 |
 | `<uses-permission>` for that same permission | `androidx.core` | — | Only apps signed with Aegis's key can hold it | Aegis grants it to itself so that it can send to those receivers |
 

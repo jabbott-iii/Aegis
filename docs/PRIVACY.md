@@ -28,7 +28,8 @@ privacy policy. Write that from this document before submission, and keep the tw
 | Shared text, links, files, media | Share sheet | Copied to a temporary sandbox file for analysis | Cache directory | Deleted after analysis | No |
 | Quarantined files | Scanner | Encrypted (Tink AEAD) | App-private storage | Until the user deletes or restores them | No |
 | Safe word | AI-7 | Encrypted | `app.db` | Until the user deletes it | No |
-| Settings | UI | Yes | DataStore | Until uninstall | No |
+| Settings | UI | Yes, not encrypted: choices only (booleans, numbers, enum names). Package names, domains, URLs, and free text go in `app.db`. | DataStore (`files/datastore/settings.preferences_pb`) | Until uninstall | No |
+| Database keys | `core:security` | Yes, one per database, all wrapped by one non-exportable Android Keystore key | `noBackupFilesDir/aegis-secrets/` | Until uninstall | No |
 
 All app data is excluded from Auto Backup and device-to-device transfer (`allowBackup=false` plus `dataExtractionRules`).
 
@@ -49,6 +50,12 @@ lookups.
 - A `core:common` logging facade is the only allowed logger. The `./gradlew checkSourceRules` CI gate fails the build on the direct logging forms it recognizes: `android.util.Log`, `print`/`println` (including `::println` references), `System.out`/`err`/`console`/`getLogger`, `printStackTrace`, `Thread.dumpStack`, and `java.util.logging`. Its one exception is the facade's logcat adapter (`app/…/logging/LogcatSink.kt`). It's a pattern scan over code with comments and strings removed, so code review still has to catch indirect routes such as reflection. detekt also bans the `android.util.Log` import.
 - Release builds log nothing at INFO level or below. Messages above that level carry no package names, domains, URLs, file names, or message content. They carry only an event identifier built from enum names (`<area>.<event>`), numeric counts, sizes, or durations, and for errors the exception's class name, never its message. Numbers are never identifiers such as UIDs, IP addresses, ports, or hashes.
 - Debug builds may log more, but only to logcat and never to files.
+- Libraries that log on their own go through the facade where they allow it. SQLCipher's Java
+  logger and leak reports become debug text, which release builds drop. SQLCipher's native layer
+  still sends SQLite's error log to logcat, and that can't be redirected. A line can carry an
+  error code, the path of one of Aegis's own database files, and the text of a failing SQL
+  statement. SQL never contains values (they're always bound arguments), so no user data appears
+  there. That still needs confirming on a device ([ARCHITECTURE §6](ARCHITECTURE.md#6-data-model-main-appdb)).
 
 ## User controls
 

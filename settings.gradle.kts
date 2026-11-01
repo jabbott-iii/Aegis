@@ -40,6 +40,8 @@ rootProject.name = "Aegis"
 // Module layout: docs/ARCHITECTURE.md §3. Add modules with /new-module as their phase begins.
 include(":app")
 include(":core:common")
+include(":core:data")
 include(":core:model")
+include(":core:security")
 include(":core:ui")
 include(":testing:common")

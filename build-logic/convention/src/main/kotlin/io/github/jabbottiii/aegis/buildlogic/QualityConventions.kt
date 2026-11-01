@@ -67,6 +67,12 @@ private fun Project.configureLicensee() {
     pluginManager.apply("app.cash.licensee")
     extensions.configure<LicenseeExtension> {
         ALLOWED_SPDX.forEach { allow(it) }
+        // Owner-approved exception (2026-11-01). The POM names only a license URL, but the LICENSE
+        // file is BSD-3-Clause. It's pinned to the version whose license was read, so an upgrade
+        // fails here until `sqlcipher-license-checked` in the catalog is bumped after a re-read.
+        allowDependency("net.zetetic", "sqlcipher-android", libs.versionOf("sqlcipher-license-checked")) {
+            because("BSD-3-Clause (LICENSE in github.com/sqlcipher/sqlcipher-android)")
+        }
         // The allowlist is project-wide, so most modules use only part of it.
         unusedAction(UnusedAction.IGNORE)
     }

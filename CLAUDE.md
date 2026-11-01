@@ -4,8 +4,9 @@ Aegis is an Android security app in Kotlin. It covers antivirus scanning, a devi
 DNS-level network protection, AI threat defenses, and an opt-in AI Crawler Shield.
 
 **Status:** **Phase 0** is in progress. The Gradle scaffold, the CI workflows, and the foundation
-modules (`app`, `core:common`, `core:model`, `core:ui`, `testing:common`) exist. Still to do in
-Phase 0: encrypted Room and DataStore, `core:security`, and spikes S1–S7. See `docs/PLAN.md`.
+modules (`app`, `core:common`, `core:data`, `core:model`, `core:security`, `core:ui`,
+`testing:common`) exist, including encrypted Room and the settings DataStore. Still to do in
+Phase 0: spikes S1–S7. See `docs/PLAN.md`.
 Keep "Commands" below in step with what actually runs.
 
 ## Where the truth lives

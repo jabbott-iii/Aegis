@@ -28,7 +28,8 @@ See [ARCHITECTURE § Module layout](ARCHITECTURE.md#3-module-layout). The conven
 | `aegis.root` | The root project | `checkModuleGraph` (plus a `checkResolvedGraph` task in each module) and `checkSourceRules` |
 
 Every module plugin also applies detekt (`config/detekt/detekt.yml`), ktlint (`.editorconfig`), and
-the licensee allowlist (Apache-2.0, MIT, BSD-2-Clause, BSD-3-Clause). The module build files apply
+the licensee allowlist (Apache-2.0, MIT, BSD-2-Clause, BSD-3-Clause, plus one pinned exception
+below). The module build files apply
 plugins and declare dependencies, and nothing else.
 
 AGP 9 compiles Kotlin itself ("built-in Kotlin"), so Android modules don't apply
@@ -78,6 +79,15 @@ Workflow hardening:
 
 - Declare every dependency in the version catalog, with no inline versions.
 - Before adding a dependency, check its license against the allowlist, its maintenance activity, and its transitive size and permissions. Prefer platform or AndroidX APIs.
+- **The one license exception.** `net.zetetic:sqlcipher-android`'s POM names only a license URL, so
+  licensee can't match it to an SPDX ID. Its LICENSE file is BSD-3-Clause. The owner approved
+  allowing exactly the version that was checked (2026-11-01), so it's pinned by
+  `sqlcipher-license-checked` in the catalog. When you upgrade SQLCipher, re-read its LICENSE,
+  then bump that entry. Until then, licensee fails. BSD-3-Clause also requires the copyright
+  notice in the app's documentation, so include it in the open-source notices before release
+  (PLAN Phase 7). The AAR also bundles code that licensee can't see: SQLite (public domain),
+  libtomcrypt as the crypto provider (license still to be checked), and a Java layer forked from
+  AOSP (probably Apache-2.0).
 - Dependabot (`.github/dependabot.yml`) opens update PRs. Update the dependency verification metadata in the same PR.
 - **Regenerating verification metadata.** Run the CI task set with `--write-verification-metadata sha256`, then review the diff. Every new artifact needs a reason to be there:
 

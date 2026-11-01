@@ -20,6 +20,14 @@ androidx-activity = "1.13.0"
 androidx-core = "1.19.1"
 androidx-lifecycle = "2.11.0"
 compose-bom = "2026.09.00"
+datastore = "1.3.0"
+room3 = "3.0.3"
+sqlcipher = "4.20.0"
+# The sqlcipher-android version whose LICENSE was last read (BSD-3-Clause). Its POM names only a URL,
+# so licensee allows exactly this version (QualityConventions.kt). Change it only after re-reading
+# the license of the version in `sqlcipher`.
+sqlcipher-license-checked = "4.20.0"
+tink = "1.24.0"
 
 junit4 = "4.13.2"
 junit5 = "5.14.4"
@@ -49,6 +57,13 @@ androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 androidx-compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 androidx-compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
+
+androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
+room3-runtime = { module = "androidx.room3:room3-runtime", version.ref = "room3" }
+room3-compiler = { module = "androidx.room3:room3-compiler", version.ref = "room3" }
+sqlcipher-android = { module = "net.zetetic:sqlcipher-android", version.ref = "sqlcipher" }
+# Only core:security may use Tink (checkModuleGraph).
+tink-android = { module = "com.google.crypto.tink:tink-android", version.ref = "tink" }
 
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
 hilt-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hilt" }

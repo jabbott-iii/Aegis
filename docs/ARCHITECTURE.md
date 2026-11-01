@@ -104,8 +104,9 @@ in every configuration, and resolves each module's production compile and runtim
 
 The Keystore rule and the "only `intel:client` does bundle network I/O" rule are reviewed by hand.
 
-Phase 0 created `app`, `core:common`, `core:model`, `core:ui`, and `testing:common`. The other
-modules are added with `/new-module` when their phase starts.
+The modules that exist so far are `app`, `core:common`, `core:data`, `core:model`,
+`core:security`, `core:ui`, and `testing:common`, all from Phase 0. The other modules are added
+with `/new-module` when their phase starts.
 
 ## 4. Component overview
 
@@ -237,6 +238,26 @@ keeps aggregates only, never full query logs, and retains them for 7 days ([PRIV
 Android Keystore AES-GCM key (with StrongBox where available) using Tink, and stored in the app
 sandbox. `allowBackup="false"`, and `dataExtractionRules` exclude every domain.
 
+How Phase 0 built it:
+- **Keys (`core:security`, `WrappedSecretStore`):**
+  - Each database has its own 32-byte random secret, under `noBackupFilesDir/aegis-secrets/`.
+  - Each is encrypted with one non-exportable Keystore AES-256-GCM key, through Tink's `AndroidKeystore` AEAD, with the secret's ID as associated data.
+  - The key is created in StrongBox when the device has it, and otherwise in the default Keystore, which is the TEE on most devices. A new key must pass an encrypt/decrypt round trip, or it's deleted.
+  - It needs no user authentication, because scheduled scans and the Shield open their databases while the screen is locked.
+  - Creation runs under a file lock, because the main process and `:shield` can both start first.
+  - The wrapping key is created only while no secret is stored. Before Android 12 the Keystore can report a key as missing when it's only failing, so a stored secret is the proof that the key exists. Without this rule, one transient error could replace the key and make every stored secret unreadable.
+  - A secret file must be exactly 64 bytes in format 1. It's written to a temporary file, renamed into place, and the directory is synced. A secret is returned only after all three succeed.
+- **Never deleted automatically.** A secret that exists but can't be read is reported as `KEY_LOST` or `UNREADABLE`, never replaced. On Android 10 and 11, `KEY_LOST` can also mean a failing Keystore. SQLCipher's default error handler deletes any database it can't open, and a wrong key looks like corruption. So `core:data` (`EncryptedDatabaseFactory`) installs a handler that keeps the file, and reports `Unreadable`. What the app does then is open decision [PLAN §6 #9](PLAN.md#6-open-decisions).
+- **SQLCipher (`core:data`):**
+  - The secret is passed as a raw key (`x'…'`), which skips SQLCipher's PBKDF2 passphrase step. The key is already random.
+  - The factory opens one connection to check the key before Room sees the database, so callers get a typed result instead of an error on their first query. A key that was just created for a database file that already exists is reported as `Unreadable` without opening the file.
+  - Callers can pass migrations, and nothing else. Destructive migration and prepackaged databases can delete or empty a database, so neither is ever set.
+  - SQLCipher's Java logger and its `CloseGuard` leak reports go through the logging facade, as debug text that release builds drop. Its native layer (forked from AOSP) also sends SQLite's own error log to logcat, and Java can't redirect that. Those lines can include an error code, the path of one of Aegis's database files, and the text of a failing SQL statement. So SQL never contains values: every value is a bound argument, which Room's generated queries already guarantee. Checking those native lines on a device is still to do.
+- **Settings:** one multi-process Preferences DataStore at `files/datastore/settings.preferences_pb`, because `:shield` reads settings too. Settings aren't encrypted, so they hold only choices: booleans, numbers, and enum names. Anything that identifies the user's apps, sites, or content goes in an encrypted database instead, for example package names, domains, URLs, or free text such as a custom DoH address. A corrupt file is replaced with the shipped defaults plus a reset marker, and that's logged. The first feature that stores a protection's on/off state must check the marker and tell the user.
+
+`app.db`'s entities, migrations, and schema export arrive with the Phase 1 requirements that define
+them. Until then the factory is tested on a test-only database.
+
 ## 7. Background execution
 
 | Work | Mechanism | Notes |
@@ -271,7 +292,7 @@ Pin exact versions in `gradle/libs.versions.toml` at scaffold time. Use current 
 | Language | Kotlin 2.x (K2), coroutines, Flow | Explicit API mode in engine modules |
 | UI | Jetpack Compose, Material 3, Navigation Compose | |
 | DI | Hilt (KSP) | |
-| Persistence | Room + SQLCipher for Android, DataStore | |
+| Persistence | Room 3 (`androidx.room3`) + SQLCipher for Android (`SQLCipherDriver`), DataStore (multi-process Preferences) | Room 3 is driver-based, and SQLCipher ships a matching driver. The owner chose Room 3 over 2.8 on 2026-11-01. |
 | Background | WorkManager | |
 | Crypto | Google Tink (Ed25519 verify, AEAD), Android Keystore | |
 | Networking | OkHttp (bundle downloads, DoH) | No other HTTP stacks |

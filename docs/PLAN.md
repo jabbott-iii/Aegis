@@ -154,6 +154,7 @@ See the [feature spec](features/ai-threat-defense.md). In priority order:
 
 - An OWASP MASVS review and the MASTG test cases, fuzzing of every parser (APK, DEX, DNS, QR payloads), and tamper testing.
 - Performance and battery tuning against the [NFR budgets](REQUIREMENTS.md#3-non-functional-requirements), plus a baseline profile.
+- An *Open-source licenses* screen, generated from licensee's `artifacts.json`. BSD-3-Clause requires the copyright notice, conditions, and disclaimer in binary distributions, and Apache-2.0 requires its license text and any NOTICE contents. Cover what licensee can't see too: SQLCipher bundles SQLite (public domain), libtomcrypt, and a Java layer forked from AOSP ([DEVELOPMENT § Dependencies](DEVELOPMENT.md#dependencies)).
 - Play Console work: Permissions Declarations (QUERY_ALL_PACKAGES, All files access, VpnService, special-use FGS if applicable), the Data safety form, a privacy-policy URL, store listing copy that documents the VPN use, and the content rating.
 - Closed testing with real users. Play requires new **personal** developer accounts to run a closed test with a minimum number of testers for a minimum period before production access. Confirm the current numbers in Play Console when you get there.
 
@@ -200,6 +201,7 @@ The owner needs to decide these. Each one changes scope or architecture.
 6. **Default DNS upstream.** The options are the network resolver, a security-focused DoH resolver (for example, Quad9), or a user choice at onboarding. Whichever is chosen must be disclosed.
 7. **Project license.** This affects contributions and how third-party data is redistributed.
 8. **NFR-MAINT-01 outside the pure modules.** `aegis.jvm.engine` gives the six pure modules explicit API mode and the ≥ 80% Kover gate. `engine:scanner`, `engine:ml`, `intel:client`, and a non-pure `ai:guard` would get neither. The options are an engine convention plugin for those modules, or narrowing NFR-MAINT-01 to the pure modules. Decide before the first of them is created.
+9. **An unreadable `app.db`.** If the Keystore loses the database key, or the file is corrupt, `core:data` reports the database as unreadable and never deletes it ([ARCHITECTURE §6](ARCHITECTURE.md#6-data-model-main-appdb)). On Android 10 and 11 a failing Keystore can look like a lost key, so a single `KEY_LOST` mustn't trigger a reset: confirm it on a later launch first. The data can't be recovered either way. The options are to tell the user and reset on their confirmation, or to reset automatically and then tell them. Findings and scans can be rebuilt by rescanning, but trust decisions and quarantined files can't. Decide before Phase 1 stores anything in `app.db`.
 
 ## 7. Definition of done (per feature)
 
