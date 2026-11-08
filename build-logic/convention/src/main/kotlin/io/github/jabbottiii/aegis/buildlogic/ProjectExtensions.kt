@@ -7,7 +7,8 @@ import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.provider.Provider
 import org.gradle.kotlin.dsl.getByType
 
-/** Base package and applicationId (decided at the Phase 0 scaffold, recorded in CLAUDE.md). */
+/** Base package and applicationId (decided at the Phase 0 scaffold, recorded in AGENTS.md and
+ * ADR-0007). */
 internal const val BASE_PACKAGE = "io.github.jabbottiii.aegis"
 
 internal val Project.libs: VersionCatalog

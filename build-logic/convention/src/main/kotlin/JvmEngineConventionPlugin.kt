@@ -7,8 +7,8 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 /**
- * Pure Kotlin engine and core modules (ARCHITECTURE §3): explicit API mode, warnings as errors,
- * and the ≥ 80% line-coverage gate (NFR-MAINT-01).
+ * Pure Kotlin engine and core modules (docs/01-architecture.md, "Module layout"): explicit API
+ * mode, warnings as errors, and the ≥ 80% line-coverage gate (NFR-MAINT-01).
  */
 class JvmEngineConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {

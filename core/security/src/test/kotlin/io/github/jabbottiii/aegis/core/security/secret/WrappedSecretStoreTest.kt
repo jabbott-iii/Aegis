@@ -347,7 +347,7 @@ class WrappedSecretStoreTest {
 
 /**
  * A software AES-256-GCM key in place of the Android Keystore, so that the store's logic runs on
- * the JVM. It's generated per test run (`.claude/rules/intel-pipeline.md` § Tests).
+ * the JVM. It's generated per test run (`.claude/rules/intel-pipeline.md`, "Tests").
  */
 private class SoftwareTestKeyWrapper : KeyWrapper {
     private var testKey: SecretKey? = null

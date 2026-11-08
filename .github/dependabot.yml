@@ -1,4 +1,4 @@
-# Dependency update PRs (DEVELOPMENT.md § Dependencies). Dependabot doesn't regenerate
+# Dependency update PRs (docs/02-dependency-policy.md, "Updates"). Dependabot doesn't regenerate
 # gradle/verification-metadata.xml, so a Gradle update PR fails CI until someone reviews the new
 # artifacts and regenerates the metadata in the same PR. That review step is intended.
 version: 2

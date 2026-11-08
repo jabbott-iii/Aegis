@@ -76,12 +76,13 @@ internal class DependencyGraph(
 }
 
 /**
- * Module dependency rules from ARCHITECTURE §3 and CLAUDE.md § Architecture rules. The check runs
- * in CI as `./gradlew checkModuleGraph`. It inspects declared dependencies and also the resolved
- * production classpaths, so a rule can't be bypassed through a transitive dependency.
+ * Module dependency rules from docs/01-architecture.md ("Module layout") and AGENTS.md
+ * ("Architecture rules"). The check runs in CI as `./gradlew checkModuleGraph`. It inspects
+ * declared dependencies and also the resolved production classpaths, so a rule can't be bypassed
+ * through a transitive dependency.
  */
 internal object ModuleGraphRules {
-    /** Pure Kotlin/JVM modules (CLAUDE.md § Architecture rules): no Android framework at all. */
+    /** Pure Kotlin/JVM modules (AGENTS.md, "Architecture rules"): no Android framework at all. */
     val PURE_MODULES: Set<String> =
         setOf(
             ":engine:apk",
@@ -233,7 +234,7 @@ abstract class CheckModuleGraphTask : DefaultTask() {
         val found = declaredViolations.get()
         if (found.isNotEmpty()) {
             throw GradleException(
-                "Module graph violations (ARCHITECTURE §3):\n" + found.joinToString("\n") { "  - $it" },
+                "Module graph violations (docs/01-architecture.md, Module layout):\n" + found.joinToString("\n") { "  - $it" },
             )
         }
         logger.lifecycle("Module graph OK.")
@@ -268,7 +269,7 @@ abstract class CheckResolvedGraphTask : DefaultTask() {
             }
         if (found.isNotEmpty()) {
             throw GradleException(
-                "Module graph violations (ARCHITECTURE §3):\n" + found.distinct().joinToString("\n") { "  - $it" },
+                "Module graph violations (docs/01-architecture.md, Module layout):\n" + found.distinct().joinToString("\n") { "  - $it" },
             )
         }
     }

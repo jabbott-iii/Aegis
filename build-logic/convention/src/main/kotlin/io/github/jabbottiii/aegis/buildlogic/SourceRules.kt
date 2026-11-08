@@ -13,8 +13,8 @@ import java.io.File
 
 /**
  * Source rules that need no type resolution, so they hold even where detekt's type-resolved rules
- * can't run (detekt 1.23 has no Android variant tasks under AGP 9). They cover CLAUDE.md
- * non-negotiable #8 (no direct logging) and § Conventions (injected dispatchers, structured
+ * can't run (detekt 1.23 has no Android variant tasks under AGP 9). They cover AGENTS.md
+ * rule 8 (no direct logging) and "Conventions" (injected dispatchers, structured
  * concurrency, no `!!` in engine code). While editing, `.claude/hooks/post_edit_checks.py` warns
  * about a subset of these patterns in Kotlin files, over the same files. This task is the CI gate.
  *
@@ -72,7 +72,7 @@ internal object SourceRules {
 
         if (!LOGCAT_SINK.matches(relativePath)) {
             LOGGING.forEach { (rx, what) ->
-                check(rx, "$what is forbidden. Use the core:common logging facade (PRIVACY.md § Logging).")
+                check(rx, "$what is forbidden. Use the core:common logging facade (docs/privacy.md, Logging).")
             }
         }
         if (!DISPATCHERS_MODULE.matches(relativePath)) {

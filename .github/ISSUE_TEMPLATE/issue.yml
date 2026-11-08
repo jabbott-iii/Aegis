@@ -1,0 +1,106 @@
+name: Issue
+description: Report a bug, a false positive or a missed detection, propose a feature or change, or ask about Aegis. One form for every kind of issue.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. Please search the [existing issues](https://github.com/jabbott-iii/Aegis/issues?q=is%3Aissue) and the [roadmap](https://github.com/jabbott-iii/Aegis/blob/main/docs/roadmap.md) first: if one covers this, comment there instead.
+
+        **Do not report a security vulnerability here.** Report it privately, as [SECURITY.md](https://github.com/jabbott-iii/Aegis/blob/main/SECURITY.md) describes. **Never attach a malware sample** to an issue.
+
+        Aegis is an Android security app for non-rooted phones. It is in Phase 0: the build, CI and an app shell exist, and the shell offers no protection yet. Out of scope for 1.0: root-only features, TLS interception, anti-theft, remote wipe, app lock, a VPN to a remote server, call recording, iOS, Wear OS, TV, enterprise MDM, and a cloud backend that stores user data ([docs/00-overview.md](https://github.com/jabbott-iii/Aegis/blob/main/docs/00-overview.md)).
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options:
+        - Bug or crash
+        - False positive (an app, file, domain or link flagged wrongly)
+        - Missed detection (no sample attached)
+        - Feature or change proposal
+        - Performance or battery
+        - Documentation
+        - Build, CI or tooling
+        - Question
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: areas
+    attributes:
+      label: Areas
+      description: The features or modules it concerns. Pick "Not sure" if you do not know.
+      multiple: true
+      options:
+        - Not sure
+        - Malware detection and scanning (engine:apk, engine:signatures, engine:heuristics, engine:ml, engine:scanner)
+        - Device security audit
+        - Network protection, Aegis Shield (shield:vpn, shield:dns)
+        - AI Crawler Shield
+        - AI threat defense (ai:guard)
+        - Threat intel (intel:client, tools:intel-pipeline, signed bundles)
+        - Core (core:common, core:model, core:data, core:security)
+        - App and UI (app, core:ui, feature:*)
+        - Permissions and Google Play policy
+        - Privacy and data handling
+        - Tests and fixtures (testing:common, testing:fixtures)
+        - Build, CI or tooling (build-logic, Gradle, workflows, Claude Code configuration)
+        - Docs
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: In a sentence or two, what happens, or what you propose.
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: |
+        For a bug: the steps to reproduce it, what you expected and what happened instead.
+        For a false positive: what was flagged, the verdict, and the detector or rule the finding names.
+        For a missed detection: the APK's SHA-256 and what it does. Never attach the APK itself.
+        For a proposal: the problem it solves, what you propose, and the alternatives you considered.
+        For performance or battery: the device, what you measured and how, and the numbers.
+        For a question: what you are trying to do, and what you tried.
+      placeholder: |
+        1. Run `./gradlew assembleDebug` and install the debug build
+        2. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The commit you built (`git rev-parse --short HEAD`).
+      placeholder: ff54f4b
+  - type: textarea
+    id: device
+    attributes:
+      label: Device and Android version
+      description: The device model, Android version and API level, and the OEM's skin (such as One UI or HyperOS), or the emulator's API level. For network issues, say whether another VPN, Private DNS or Always-on VPN is set.
+      placeholder: Pixel 8, Android 16 (API 36)
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs and output
+      description: |
+        Command output, a crash stack trace, or `adb logcat` output.
+        Remove package names, domains, URLs, file names and anything else you do not want to share.
+      render: text
+  - type: textarea
+    id: context
+    attributes:
+      label: Related tasks, requirements, decisions and context
+      description: A roadmap task, requirement ID or ADR this touches (such as S3, FR-SCAN-08 or ADR-0003), screenshots or recordings, and anything else that helps.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched the existing issues and the roadmap.
+          required: true
+        - label: This is not a security vulnerability, and it holds no malware samples, secrets, credentials or private data.
+          required: true
+        - label: I would like to work on this.

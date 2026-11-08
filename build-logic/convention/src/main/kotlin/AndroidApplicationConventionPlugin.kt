@@ -13,13 +13,14 @@ import org.gradle.kotlin.dsl.configure
  *
  * Release signing reads `AEGIS_SIGNING_STORE_FILE`, `AEGIS_SIGNING_STORE_PASSWORD`,
  * `AEGIS_SIGNING_KEY_ALIAS`, and `AEGIS_SIGNING_KEY_PASSWORD`. Without them the release build is
- * unsigned. Key material never lives in the repo (DEVELOPMENT.md § Secrets and signing).
+ * unsigned. Key material never lives in the repo (docs/05-release.md, "Signing and secrets").
  */
 class AndroidApplicationConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
-            // It sets Aegis's applicationId and release signing. Fixture APKs (testing/fixtures) need
-            // their own plugin, with their own IDs and a test-named key (TESTING §2).
+            // It sets Aegis's applicationId and release signing. Fixture APKs (testing/fixtures)
+            // need their own plugin, with their own IDs and a test-named key (docs/04-quality.md,
+            // "Malware sample handling").
             require(path == ":app") { "aegis.android.application is only for :app, not $path" }
             pluginManager.apply("com.android.application")
             extensions.configure<ApplicationExtension> {

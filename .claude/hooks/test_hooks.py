@@ -110,7 +110,7 @@ def post_cases() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
         (root / "docs").mkdir()
-        (root / "docs" / "PERMISSIONS_AND_POLICY.md").write_text("| `INTERNET` | ... | `CAMERA` |", encoding="utf-8")
+        (root / "docs" / "permissions-and-policy.md").write_text("| `INTERNET` | ... | `CAMERA` |", encoding="utf-8")
 
         def post(rel: str, content: str) -> tuple[int, str]:
             f = root / rel

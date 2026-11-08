@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   This manifest requests no permissions. Libraries merge in one signature-level self permission,
-  listed in docs/PERMISSIONS_AND_POLICY.md § Exported components. Every new <uses-permission> and
-  every exported component must appear there first (use /add-permission).
+  listed in docs/permissions-and-policy.md, "Exported components and merged manifest entries".
+  Every new <uses-permission> and every exported component must appear there first (use
+  /add-permission).
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 

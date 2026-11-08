@@ -1,4 +1,4 @@
-# CodeQL for Java and Kotlin (DEVELOPMENT.md § CI gates, item 9).
+# CodeQL for Java and Kotlin (docs/04-quality.md, "CI (GitHub Actions)").
 name: CodeQL
 
 on:

@@ -14,7 +14,7 @@ class RootConventionPlugin : Plugin<Project> {
         val checkModuleGraph =
             target.tasks.register<CheckModuleGraphTask>("checkModuleGraph") {
                 group = "verification"
-                description = "Checks the module dependency rules in ARCHITECTURE §3."
+                description = "Checks the module dependency rules in docs/01-architecture.md (Module layout)."
                 declaredViolations.set(declared)
             }
         target.gradle.projectsEvaluated {
@@ -27,7 +27,7 @@ class RootConventionPlugin : Plugin<Project> {
             val perModule =
                 target.subprojects.map { project ->
                     project.tasks.register<CheckResolvedGraphTask>("checkResolvedGraph") {
-                        description = "Checks this module's resolved classpaths against ARCHITECTURE §3."
+                        description = "Checks this module's resolved classpaths against docs/01-architecture.md (Module layout)."
                         projectPath.set(project.path)
                         this.androidProjects.set(androidProjects)
                         project.configurations

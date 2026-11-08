@@ -10,8 +10,8 @@ import org.gradle.kotlin.dsl.withType
 import org.jlleitschuh.gradle.ktlint.KtlintExtension
 
 /**
- * detekt, ktlint, and the license allowlist (DEVELOPMENT.md § CI gates). These gates are not
- * configurable per module: never add baselines, suppressions, or `ignoreFailures` here.
+ * detekt, ktlint, and the license allowlist (docs/04-quality.md, "Build checks"). These gates are
+ * not configurable per module: never add baselines, suppressions, or `ignoreFailures` here.
  */
 internal fun Project.configureQualityGates() {
     configureDetekt()

@@ -50,8 +50,8 @@ internal sealed interface DatabaseResult<out T> {
 }
 
 /**
- * Opens Room databases encrypted with SQLCipher (ARCHITECTURE §6). Each database's key is a secret
- * from core:security, handed to SQLCipher as a raw key.
+ * Opens Room databases encrypted with SQLCipher (docs/01-architecture.md, "Data model"). Each
+ * database's key is a secret from core:security, handed to SQLCipher as a raw key.
  *
  * It never deletes a database. SQLCipher's default error handler deletes any file it can't open,
  * and a wrong key looks the same as corruption, so one lost key would silently wipe the user's
@@ -69,8 +69,8 @@ internal class EncryptedDatabaseFactory
             // SQLCipher doesn't load its native library itself. Repeated calls are no-ops.
             System.loadLibrary("sqlcipher")
             // SQLCipher's Java layer logs to logcat by default. Route it to debug text, which
-            // release builds drop (CLAUDE.md non-negotiable #8). Its native SQLite error log
-            // can't be redirected (ARCHITECTURE §6).
+            // release builds drop (AGENTS.md rule 8). Its native SQLite error log
+            // can't be redirected (docs/01-architecture.md, "Data model").
             Logger.setTarget(DebugOnlyLogTarget(logger))
             CloseGuard.setReporter { message, _ ->
                 logger.warn(DataLogEvent.DATABASE_NOT_CLOSED)

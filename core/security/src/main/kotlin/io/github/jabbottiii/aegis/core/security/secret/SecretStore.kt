@@ -2,8 +2,8 @@ package io.github.jabbottiii.aegis.core.security.secret
 
 /**
  * Random secrets that Aegis generates on the device and keeps wrapped by an Android Keystore key
- * (ARCHITECTURE §6). A secret never leaves the device and is never backed up. Every process that
- * asks for the same [SecretId] gets the same bytes.
+ * (docs/01-architecture.md, "Data model"). A secret never leaves the device and is never backed up.
+ * Every process that asks for the same [SecretId] gets the same bytes.
  */
 interface SecretStore {
     /**
@@ -42,9 +42,10 @@ sealed interface SecretResult {
 
 /**
  * Why a secret couldn't be returned. [UNREADABLE] is permanent, and [KEYSTORE_ERROR] and
- * [STORAGE_ERROR] may pass on a retry. [KEY_LOST] is usually permanent, but on Android 10 and 11
- * a failing Keystore looks the same, so confirm it on a later launch before acting on it
- * (PLAN §6 #9). A [KEYSTORE_ERROR] that repeats on every launch may be permanent too.
+ * [STORAGE_ERROR] may pass on a retry. [KEY_LOST] is usually permanent, but on Android 10 and 11 a
+ * failing Keystore looks the same, so confirm it on a later launch before acting on it
+ * (docs/00-overview.md, "Open decisions" #9). A [KEYSTORE_ERROR] that repeats on every launch may
+ * be permanent too.
  */
 enum class SecretFailure {
     /**

@@ -14,8 +14,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-// Semantic tests for TESTING §1 (UI modules) and NFR-A11Y-01. Instrumented test names can't
-// contain spaces: DEX allows them only from API 30, and minSdk is 29.
+// Semantic tests for docs/04-quality.md, "Test layers" (UI modules) and NFR-A11Y-01. Instrumented
+// test names can't contain spaces: DEX allows them only from API 30, and minSdk is 29.
 @RunWith(AndroidJUnit4::class)
 class StatusSemanticsTest {
     @get:Rule

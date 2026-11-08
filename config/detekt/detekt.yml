@@ -29,7 +29,7 @@ style:
     active: true
     imports:
       - value: 'android.util.Log'
-        reason: 'Use the core:common logging facade so that no PII reaches logs (PRIVACY.md § Logging).'
+        reason: 'Use the core:common logging facade so that no PII reaches logs (docs/privacy.md, Logging).'
     # The logcat sink is the facade's only Android adapter.
     excludes: ['**/app/src/main/kotlin/**/logging/LogcatSink.kt']
   MagicNumber:

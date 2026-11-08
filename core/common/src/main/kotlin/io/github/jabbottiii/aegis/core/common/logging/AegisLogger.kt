@@ -1,8 +1,9 @@
 package io.github.jabbottiii.aegis.core.common.logging
 
 /**
- * The only logger Aegis code may use (PRIVACY.md § Logging). `./gradlew checkSourceRules` fails
- * the build on the direct logging calls it recognizes (Log, println, System.out/err, and others).
+ * The only logger Aegis code may use (docs/privacy.md, "Logging"). `./gradlew checkSourceRules`
+ * fails the build on the direct logging calls it recognizes (Log, println, System.out/err, and
+ * others).
  *
  * Call sites can pass only an enum constant that implements [LogEvent], plus numbers. A record's
  * event identifier is `<area>.<constant name>`, built from two enum names that are fixed at
@@ -40,7 +41,7 @@ public interface LogEvent {
     public val area: LogArea
 }
 
-/** The part of Aegis that logged an event (ARCHITECTURE §3). */
+/** The part of Aegis that logged an event (docs/01-architecture.md, "Module layout"). */
 public enum class LogArea {
     APP,
     DATA,

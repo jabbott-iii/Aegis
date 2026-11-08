@@ -12,7 +12,7 @@ Checks:
   SourceRules.kt) fails on in CI, over the same files. Keep their prefixes, file scope, and
   exemptions in step with it. Android imports in pure modules fail CI through compilation (the
   modules are pure JVM) and checkModuleGraph.
-- AndroidManifest.xml: permissions missing from docs/PERMISSIONS_AND_POLICY.md, and
+- AndroidManifest.xml: permissions missing from docs/permissions-and-policy.md, and
   exported components
 - Gradle build files: inline dependency versions (the version catalog is required)
 - strings.xml: forbidden security claims (ui-and-copy rule)
@@ -112,7 +112,7 @@ def check_kotlin(rel: str, text: str) -> list[str]:
     issues: list[str] = []
     if rel.startswith(PURE_MODULE_PREFIXES) and ANDROID_IMPORT.search(text):
         issues.append("Android/AndroidX import in a pure-Kotlin module. Move platform code behind an interface "
-                      "with an adapter in engine:scanner, shield:vpn, or app (ARCHITECTURE §3).")
+                      "with an adapter in engine:scanner, shield:vpn, or app (docs/01-architecture.md, Module layout).")
     if rel.startswith(NO_BANG_BANG_PREFIXES):
         lines = lines_matching(text, re.compile(r"!!"))
         if lines:
@@ -127,7 +127,7 @@ def check_kotlin(rel: str, text: str) -> list[str]:
         lines = lines_matching(text, DIRECT_LOGGING)
         if lines:
             issues.append(f"Direct logging (android.util.Log/println) at line(s) {lines}. Use the core:common "
-                          "logging facade and keep PII out of logs (PRIVACY.md § Logging).")
+                          "logging facade and keep PII out of logs (docs/privacy.md, Logging).")
     return issues
 
 
@@ -135,19 +135,19 @@ def check_manifest(rel: str, text: str, project_dir: str) -> list[str]:
     if rel.startswith("testing/fixtures/"):
         return []
     issues: list[str] = []
-    policy = Path(project_dir) / "docs" / "PERMISSIONS_AND_POLICY.md"
+    policy = Path(project_dir) / "docs" / "permissions-and-policy.md"
     policy_text = policy.read_text(encoding="utf-8", errors="replace") if policy.is_file() else ""
     undocumented = sorted({
         name for name in USES_PERMISSION.findall(text)
         if name.rsplit(".", 1)[-1] not in policy_text
     })
     if undocumented:
-        issues.append(f"Permission(s) not in docs/PERMISSIONS_AND_POLICY.md: {', '.join(undocumented)}. "
-                      "Run /add-permission (disclosure, fallback, Play declaration, PRIVACY update).")
+        issues.append(f"Permission(s) not in docs/permissions-and-policy.md: {', '.join(undocumented)}. "
+                      "Run /add-permission (disclosure, fallback, Play declaration, docs/privacy.md update).")
     exported = len(EXPORTED_TRUE.findall(text))
     if exported:
         issues.append(f"{exported} component(s) marked android:exported=\"true\". Confirm each is in the allowed "
-                      "exported set, protected or input-validated, and reflected in THREAT_MODEL.md B3.")
+                      "exported set, protected or input-validated, and reflected in docs/threat-model.md B3.")
     return issues
 
 

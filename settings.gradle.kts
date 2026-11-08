@@ -37,7 +37,8 @@ dependencyResolutionManagement {
 
 rootProject.name = "Aegis"
 
-// Module layout: docs/ARCHITECTURE.md §3. Add modules with /new-module as their phase begins.
+// Module layout: docs/01-architecture.md, "Module layout". Add modules with /new-module as their
+// phase begins.
 include(":app")
 include(":core:common")
 include(":core:data")

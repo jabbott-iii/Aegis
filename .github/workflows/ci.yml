@@ -1,4 +1,4 @@
-# CI gates from docs/DEVELOPMENT.md § CI gates.
+# CI gates from docs/04-quality.md, "CI (GitHub Actions)".
 # Every Gradle run also enforces dependency verification (gradle/verification-metadata.xml).
 # Third-party actions are pinned by commit SHA. Nothing here uses secrets, and fork PRs never get any.
 name: CI
@@ -35,7 +35,7 @@ jobs:
 
       - name: Create a throwaway release signing key
         # The release build must be signed to install, but CI's key is generated per run and
-        # never published (DEVELOPMENT.md § CI gates, item 1).
+        # never published (docs/05-release.md, "Signing and secrets").
         run: |
           store="$RUNNER_TEMP/ci-throwaway.jks"
           pass="$(openssl rand -hex 24)"

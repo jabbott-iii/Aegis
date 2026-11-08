@@ -1,4 +1,4 @@
-# Every dependency and plugin version lives here (DEVELOPMENT.md § Dependencies).
+# Every dependency and plugin version lives here (docs/02-dependency-policy.md).
 # Before adding an entry, check its license against the allowlist in build-logic
 # (QualityConventions.kt), its maintenance activity, its transitive size, and any manifest
 # permissions it merges. Regenerate gradle/verification-metadata.xml in the same change.

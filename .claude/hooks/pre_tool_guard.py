@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 """PreToolUse guard for the Aegis repository.
 
-Enforces project non-negotiables (see CLAUDE.md) that permission rules can't express:
+Enforces project non-negotiables (see AGENTS.md) that permission rules can't express:
 
-- deny: downloading malware samples, or unpacking password-protected sample archives (TESTING §2)
+- deny: downloading malware samples, or unpacking password-protected sample archives
+        (docs/04-quality.md, Malware sample handling)
 - deny: writing secrets (private keys, API tokens) into non-test files
 - deny: security-weakening Android config (cleartext, user CAs, backup, debuggable)
 - deny: trust-all TLS code
 - deny: analytics, ads, or attribution SDK dependencies (NFR-PRIV-02)
 - ask:  restricted permissions or an AccessibilityService in production manifests (ADR-0004)
-- ask:  crash-reporting SDKs, which need a PRIVACY update and opt-in
+- ask:  crash-reporting SDKs, which need a docs/privacy.md update and opt-in
 
 Input: hook JSON on stdin. Output: a PreToolUse permissionDecision JSON on stdout.
 The guard fails open if the input can't be parsed, so a hook bug never blocks all work.
@@ -108,13 +109,13 @@ def check_bash(command: str) -> tuple[list[str], list[str]]:
     if MALWARE_HOSTS.search(command) and FETCHERS.search(command) and SAMPLE_DOWNLOAD.search(command):
         deny.append(
             "This command downloads a sample from a malware-sample host. Live samples must never enter this working "
-            "tree; evaluate real samples only in the isolated lab (docs/TESTING.md §2). Hash or metadata queries "
+            "tree; evaluate real samples only in the isolated lab (docs/04-quality.md, Malware sample handling). Hash or metadata queries "
             "are fine."
         )
     if SAMPLE_ARCHIVE_PASSWORD.search(command):
         deny.append(
             "This command unpacks a password-protected malware sample archive. That isn't allowed in this repo "
-            "(docs/TESTING.md §2)."
+            "(docs/04-quality.md, Malware sample handling)."
         )
     return deny, []
 
@@ -127,14 +128,14 @@ def check_content(path: str, text: str) -> tuple[list[str], list[str]]:
 
     if not is_test_path(p):
         for label in find(SECRET_PATTERNS, text):
-            deny.append(f"The new content contains {label}. Secrets must never be written to the repo (DEVELOPMENT.md § Secrets).")
+            deny.append(f"The new content contains {label}. Secrets must never be written to the repo (docs/05-release.md, Signing and secrets).")
 
     if name == "AndroidManifest.xml" and not is_fixture_path(p):
         for label in find(MANIFEST_DENY, text):
             deny.append(f"This manifest change {label}.")
         for m in USES_RESTRICTED_PERMISSION.finditer(text):
             ask.append(
-                f"This change adds restricted permission {m.group(1)}, which PERMISSIONS_AND_POLICY.md lists as "
+                f"This change adds restricted permission {m.group(1)}, which docs/permissions-and-policy.md lists as "
                 "deliberately not requested. It needs an ADR or doc change and the user's approval."
             )
         if ACCESSIBILITY_SERVICE.search(text):
@@ -156,7 +157,7 @@ def check_content(path: str, text: str) -> tuple[list[str], list[str]]:
         if m:
             ask.append(
                 f"The dependency '{m.group(1)}' is a crash-reporting SDK. It requires opt-in, and updates to "
-                "PRIVACY.md and the Data safety mapping."
+                "docs/privacy.md and the Data safety mapping."
             )
 
     return deny, ask

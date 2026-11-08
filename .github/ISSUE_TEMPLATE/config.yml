@@ -1,0 +1,8 @@
+# Every issue uses the one form, issue.yml (CONTRIBUTING.md, "Contribution workflow").
+# The security link works only once Private vulnerability reporting is enabled in the
+# repository settings (see SECURITY.md).
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/jabbott-iii/Aegis/security/advisories/new
+    about: Report it privately through GitHub's private vulnerability reporting (see SECURITY.md), never in a public issue.
